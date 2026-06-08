@@ -1,0 +1,9 @@
+{
+  "name": "@stocker/api-contracts",
+  "private": true,
+  "version": "1.0.0",
+  "main": "./index.ts",
+  "scripts": {
+    "codegen": "openapi-typescript https://localhost:7001/swagger/v1/swagger.json -o ./index.ts"
+  }
+}

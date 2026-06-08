@@ -1,0 +1,9 @@
+{
+  "name": "@stocker/backend",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "dotnet watch run --launch-profile https",
+    "build": "dotnet build -c Release"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "stocker",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "packageManager": "npm@11.6.2",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "codegen": "turbo run codegen"
+  },
+  "devDependencies": {
+    "turbo": "^2.0.0"
+  }
+}
