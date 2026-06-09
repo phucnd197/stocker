@@ -1,0 +1,33 @@
+{
+  "extensions": [
+    {
+      "id": "feature-scaffold",
+      "name": "Feature Scaffold",
+      "description": "Feature scaffolding templates for .NET FastEndpoints with Vertical Slice Architecture. Provides templates for creating new features with proper structure following Stocker project patterns.",
+      "version": "1.0.0",
+      "author": "Stocker Project",
+      "type": "code",
+      "category": "process",
+      "effect": "Read+Write",
+      "tags": ["scaffolding", "dotnet", "fastendpoints", "vs-a", "template"],
+      "homepage": "https://github.com/github/spec-kit",
+      "commands": {
+        "speckit.scaffold-feature": {
+          "description": "Scaffolds a complete feature structure following .NET FastEndpoints and Vertical Slice Architecture patterns",
+          "template": "templates/feature-scaffold.md",
+          "params": {
+            "featureName": {
+              "type": "string",
+              "description": "Name of the feature (e.g., WatchlistManagement)",
+              "required": true
+            }
+          }
+        }
+      },
+      "compatibility": {
+        "specKitVersion": ">=0.9.0",
+        "integrations": ["claude", "copilot", "cursor"]
+      }
+    }
+  ]
+}
