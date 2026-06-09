@@ -1,0 +1,11 @@
+{
+  "name": "@stocker/backend-tests",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "dotnet test --no-build"
+  },
+  "dependencies": {
+    "@stocker/backend-src": "*"
+  }
+}

@@ -1,5 +1,5 @@
 {
-  "name": "@stocker/backend",
+  "name": "@stocker/backend-src",
   "private": true,
   "version": "1.0.0",
   "scripts": {
