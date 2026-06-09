@@ -15,7 +15,7 @@ public class StockRankingService
     _calculator = calculator;
   }
 
-  public async Task<RankingResult> RankStocksAsync(CancellationToken ct = default)
+  public async Task<RankingResult> RankStocksAsync(RankingRequest request, CancellationToken ct = default)
   {
     // 1. Fetch data from TradingView
     var (peData, roaData) = await _dataFetcher.FetchAllStockDataAsync(ct);
@@ -24,9 +24,11 @@ public class StockRankingService
     var rankedCompanies = _calculator.CalculateRankings(peData, roaData);
 
     // 3. Filter by market cap
-    var (valid, missingCap) = FilterByMarketCap(rankedCompanies);
+    var (valid, missingCap) = FilterByMarketCap(request.MinimumMarketcap, rankedCompanies);
 
     valid.Sort((a, b) => a.CombinedRank.CompareTo(b.CombinedRank));
+
+    valid = valid.Take(request.NumberOfStocks).ToList();
 
     return new RankingResult
     {
@@ -38,6 +40,7 @@ public class StockRankingService
   }
 
   private static (List<RankedCompany> Valid, List<RankedCompany> MissingCap) FilterByMarketCap(
+      decimal? minimumMarketCap,
       Dictionary<string, RankedCompany> rankedCompanies)
   {
     var valid = new List<RankedCompany>();
@@ -53,7 +56,10 @@ public class StockRankingService
       }
       else
       {
-        valid.Add(company);
+        if (minimumMarketCap is null || marketCap > minimumMarketCap)
+        {
+          valid.Add(company);
+        }
       }
     }
 

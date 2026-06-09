@@ -1,10 +1,12 @@
 using FastEndpoints;
+using Microsoft.AspNetCore.Mvc;
 using Stocker.Features.StockRanking.Models;
 using Stocker.Features.StockRanking.Services;
+using Stocker.Features.StockRanking.Validators;
 
 namespace Stocker.Features.StockRanking.Endpoints;
 
-public class RankStocksEndpoint : EndpointWithoutRequest<RankingResponse>
+public class RankStocksEndpoint : Endpoint<RankingRequest, RankingResponse>
 {
   private readonly StockRankingService _stockRankingService;
 
@@ -15,13 +17,13 @@ public class RankStocksEndpoint : EndpointWithoutRequest<RankingResponse>
 
   public override void Configure()
   {
-    Get("/api/stocks/ranking");
+    Post("/api/stocks/ranking");
     AllowAnonymous();
   }
 
-  public override async Task HandleAsync(CancellationToken ct)
+  public override async Task HandleAsync(RankingRequest request, CancellationToken ct)
   {
-    var result = await _stockRankingService.RankStocksAsync(ct);
+    var result = await _stockRankingService.RankStocksAsync(request, ct);
 
     var response = new RankingResponse
     {

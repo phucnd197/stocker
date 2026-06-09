@@ -1,14 +1,21 @@
+using Auth0.AspNetCore.Authentication.Api;
 using FastEndpoints;
 using FastEndpoints.Swagger;
 using Stocker.Features;
-using Stocker.Features.StockRanking.Services;
 using Stocker.Middleware;
+using Stocker.Models.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddFastEndpoints();
 builder.Services.SwaggerDocument();
 builder.Services.AddFeatureDependencies();
+builder.Services.AddAuth0ApiAuthentication(options =>
+{
+  var config = builder.Configuration.GetSection("Auth0").Get<AuthenticationOptions>();
+  options.Domain = config.Domain;
+  options.Audience = config.Audience;
+});
 
 var app = builder.Build();
 

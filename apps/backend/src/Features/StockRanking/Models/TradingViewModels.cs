@@ -7,8 +7,8 @@ namespace Stocker.Features.StockRanking.Models;
 public record TradingViewRequest
 {
   public required string[] Columns { get; init; }
-  public required int[] Range { get; init; }
   public required string Preset { get; init; }
+  public int[]? Range { get; init; }
   public SortOption? Sort { get; init; }
   public Options Options { get; init; } = new();
 }
