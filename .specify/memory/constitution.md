@@ -1,3 +1,16 @@
+<!--
+Sync Impact Report:
+- Version change: 1.0 → 1.1 (MINOR — new technology choices added)
+- Modified principles: Anti-Patterns section expanded with MUI/Zod rules
+- Added sections: None (technology stack updated in-place)
+- Removed sections: None
+- Templates requiring updates:
+  ✅ spec-template.md — no changes needed (UI-agnostic)
+  ✅ plan-template.md — no changes needed (generic structure)
+  ✅ tasks-template.md — no changes needed (task organization unchanged)
+- Follow-up TODOs: None
+-->
+
 # Stocker Project Constitution
 
 ## Purpose
@@ -229,6 +242,8 @@ All features follow this workflow:
 - **Framework**: React 19.2.x
 - **Language**: TypeScript 6.0.x
 - **Build**: Vite 8.x
+- **UI Library**: Material UI (MUI) 7.x — Material Design component system
+- **Form Validation**: Zod 3.x — Schema-based validation for forms and API data
 - **Type Safety**: OpenAPI code generation
 - **Testing**: Vitest / React Testing Library
 
@@ -250,6 +265,9 @@ All features follow this workflow:
 ❌ **Don't** use blocking calls like `.Result` or `.Wait()`
 ❌ **Don't** ignore cancellation tokens in async methods
 ❌ **Don't** skip OpenAPI documentation updates
+❌ **Don't** build custom UI components when MUI provides an equivalent
+❌ **Don't** write manual form validation when Zod schemas can be used
+❌ **Don't** use `any` type — always use proper TypeScript types or Zod inference
 
 ---
 
@@ -263,6 +281,6 @@ All features follow this workflow:
 
 ---
 
-**Last Updated**: 2025-06-09
-**Version**: 1.0
+**Last Updated**: 2026-06-10
+**Version**: 1.1
 **Status**: Active
