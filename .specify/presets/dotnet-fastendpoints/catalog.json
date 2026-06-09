@@ -1,0 +1,32 @@
+{
+  "presets": [
+    {
+      "id": "dotnet-fastendpoints",
+      "name": ".NET FastEndpoints",
+      "description": "Custom preset for .NET 10 FastEndpoints with Vertical Slice Architecture, REPR pattern, TDD, and EF Core. Optimized for API feature development in the Stocker project.",
+      "version": "1.0.0",
+      "author": "Stocker Project",
+      "tags": ["dotnet", "fastendpoints", "vs-a", "repr", "tdd", "ef-core", "api"],
+      "priority": 100,
+      "templates": {
+        "spec": "templates/spec-template.md",
+        "plan": "templates/plan-template.md",
+        "tasks": "templates/tasks-template.md"
+      },
+      "metadata": {
+        "framework": ".NET 10",
+        "api": "FastEndpoints 8.x",
+        "architecture": "Vertical Slice Architecture",
+        "pattern": "REPR (Request-Endpoint-Response)",
+        "testing": "xUnit with TDD",
+        "orm": "EF Core 10.x",
+        "database": "PostgreSQL / SQLite",
+        "documentation": "FastEndpoints.Swagger"
+      },
+      "compatibility": {
+        "specKitVersion": ">=0.9.0",
+        "integrations": ["claude", "copilot", "cursor"]
+      }
+    }
+  ]
+}

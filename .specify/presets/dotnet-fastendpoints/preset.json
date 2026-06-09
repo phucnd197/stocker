@@ -1,0 +1,19 @@
+{
+  "name": "dotnet-fastendpoints",
+  "version": "1.0.0",
+  "description": "Custom preset for .NET 10 FastEndpoints with Vertical Slice Architecture, REPR pattern, TDD, and EF Core",
+  "author": "Stocker Project",
+  "priority": 100,
+  "templates": {
+    "spec": "templates/spec-template.md",
+    "plan": "templates/plan-template.md",
+    "tasks": "templates/tasks-template.md"
+  },
+  "overrides": {
+    "integration": "claude"
+  },
+  "tags": ["dotnet", "fastendpoints", "vs-a", "repr", "tdd", "ef-core"],
+  "compatibility": {
+    "specKitVersion": ">=0.9.0"
+  }
+}

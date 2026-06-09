@@ -1,0 +1,32 @@
+{
+  "presets": [
+    {
+      "id": "react-typescript",
+      "name": "React + TypeScript",
+      "description": "Custom preset for React 19 + TypeScript with Vite. Optimized for UI/UX feature development with component-based architecture, hooks, and type-safe API integration.",
+      "version": "1.0.0",
+      "author": "Stocker Project",
+      "tags": ["react", "typescript", "vite", "components", "hooks", "ui"],
+      "priority": 90,
+      "templates": {
+        "spec": "templates/spec-template.md",
+        "plan": "templates/plan-template.md",
+        "tasks": "templates/tasks-template.md"
+      },
+      "metadata": {
+        "framework": "React 19.2.x",
+        "language": "TypeScript 6.0.x",
+        "build": "Vite 8.x",
+        "stateManagement": "React hooks",
+        "serverState": "React Query / SWR",
+        "routing": "React Router v6+",
+        "testing": "Vitest / React Testing Library",
+        "styling": "CSS Modules / Tailwind"
+      },
+      "compatibility": {
+        "specKitVersion": ">=0.9.0",
+        "integrations": ["claude", "copilot", "cursor"]
+      }
+    }
+  ]
+}

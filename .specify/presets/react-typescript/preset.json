@@ -1,0 +1,19 @@
+{
+  "name": "react-typescript",
+  "version": "1.0.0",
+  "description": "Custom preset for React 19 + TypeScript with Vite. Optimized for UI/UX feature development with component-based architecture, hooks, and type-safe API integration.",
+  "author": "Stocker Project",
+  "priority": 90,
+  "templates": {
+    "spec": "templates/spec-template.md",
+    "plan": "templates/plan-template.md",
+    "tasks": "templates/tasks-template.md"
+  },
+  "overrides": {
+    "integration": "claude"
+  },
+  "tags": ["react", "typescript", "vite", "components", "hooks", "ui"],
+  "compatibility": {
+    "specKitVersion": ">=0.9.0"
+  }
+}

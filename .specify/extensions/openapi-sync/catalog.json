@@ -1,0 +1,33 @@
+{
+  "extensions": [
+    {
+      "id": "openapi-sync",
+      "name": "OpenAPI Type Sync",
+      "description": "Syncs TypeScript types from backend OpenAPI/Swagger specification to api-contracts package. Ensures frontend type safety with generated types.",
+      "version": "1.0.0",
+      "author": "Stocker Project",
+      "type": "code",
+      "category": "integration",
+      "effect": "Read+Write",
+      "tags": ["openapi", "typescript", "type-sync", "api-contracts"],
+      "homepage": "https://github.com/github/spec-kit",
+      "commands": {
+        "speckit.sync-types": {
+          "description": "Generates TypeScript types from backend Swagger endpoint and updates api-contracts package",
+          "script": "scripts/sync-types.sh",
+          "params": {
+            "backendUrl": {
+              "type": "string",
+              "description": "Backend Swagger URL (default: https://localhost:7001/swagger/v1/swagger.json)",
+              "required": false
+            }
+          }
+        }
+      },
+      "compatibility": {
+        "specKitVersion": ">=0.9.0",
+        "integrations": ["claude", "copilot", "cursor"]
+      }
+    }
+  ]
+}
