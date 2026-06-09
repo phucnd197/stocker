@@ -17,35 +17,19 @@ public class TradingViewClient
 
   public async Task<(TradingViewResponse PeData, TradingViewResponse RoaData)> FetchAllStockDataAsync(CancellationToken ct)
   {
-    var totalCount = await GetTotalCountAsync(ct);
-
-    var peTask = GetStocksByPeAsync(totalCount, ct);
-    var roaTask = GetStocksByRoaAsync(totalCount, ct);
+    var peTask = GetStocksByPeAsync(ct);
+    var roaTask = GetStocksByRoaAsync(ct);
 
     await Task.WhenAll(peTask, roaTask);
 
     return (await peTask, await roaTask);
   }
 
-  private async Task<int> GetTotalCountAsync(CancellationToken ct)
-  {
-    var request = new TradingViewRequest
-    {
-      Columns = [],
-      Range = [1, 2],
-      Preset = "all_stocks",
-    };
-
-    var response = await PostAsync(request, ct);
-    return response.TotalCount;
-  }
-
-  private async Task<TradingViewResponse> GetStocksByPeAsync(int maxStocks, CancellationToken ct)
+  private async Task<TradingViewResponse> GetStocksByPeAsync(CancellationToken ct)
   {
     var request = new TradingViewRequest
     {
       Columns = ColumnDefinitions.PeColumns,
-      Range = [0, maxStocks],
       Sort = new SortOption("price_earnings_ttm", "asc"),
       Preset = "all_stocks"
     };
@@ -53,13 +37,12 @@ public class TradingViewClient
     return await PostAsync(request, ct);
   }
 
-  private async Task<TradingViewResponse> GetStocksByRoaAsync(int maxStocks, CancellationToken ct)
+  private async Task<TradingViewResponse> GetStocksByRoaAsync(CancellationToken ct)
   {
     var request = new TradingViewRequest
     {
       Columns = ColumnDefinitions.RoaColumns,
-      Range = [0, maxStocks],
-      Sort = new SortOption("return_on_assets_fq", "desc"),
+      Sort = new SortOption("return_on_invested_capital_fq", "desc"),
       Preset = "all_stocks"
     };
 
