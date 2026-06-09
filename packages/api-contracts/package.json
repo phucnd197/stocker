@@ -4,6 +4,9 @@
   "version": "1.0.0",
   "main": "./index.ts",
   "scripts": {
-    "codegen": "openapi-typescript https://localhost:7001/swagger/v1/swagger.json -o ./index.ts"
+    "codegen": "openapi-typescript http://localhost:5113/swagger/v1/swagger.json -o ./index.ts"
+  },
+  "devDependencies": {
+    "openapi-typescript": "^7.13.0"
   }
 }

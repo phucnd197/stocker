@@ -7,7 +7,7 @@ public static class StockRankingServiceInjection
   public static IServiceCollection AddStockRankingDependencies(this IServiceCollection services)
   {
     // Register feature services
-    services.AddHttpClient<TradingViewDataFetcher>();
+    services.AddHttpClient<TradingViewClient>();
     services.AddScoped<RankingCalculator>();
     services.AddScoped<StockRankingService>();
     return services;

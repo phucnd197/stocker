@@ -4,11 +4,11 @@ namespace Stocker.Features.StockRanking.Services;
 
 public class StockRankingService
 {
-  private readonly TradingViewDataFetcher _dataFetcher;
+  private readonly TradingViewClient _dataFetcher;
   private readonly RankingCalculator _calculator;
 
   public StockRankingService(
-      TradingViewDataFetcher dataFetcher,
+      TradingViewClient dataFetcher,
       RankingCalculator calculator)
   {
     _dataFetcher = dataFetcher;

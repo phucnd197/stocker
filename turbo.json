@@ -5,6 +5,11 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**", "bin/**", "obj/**"]
     },
+    "test": {
+      "dependsOn": ["build"],
+      "inputs": ["tests/**/*"],
+      "outputs": []
+    },
     "dev": {
       "cache": false,
       "persistent": true

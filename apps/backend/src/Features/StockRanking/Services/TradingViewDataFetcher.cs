@@ -5,12 +5,12 @@ using Stocker.Features.StockRanking.Models;
 
 namespace Stocker.Features.StockRanking.Services;
 
-public class TradingViewDataFetcher
+public class TradingViewClient
 {
   private readonly HttpClient _httpClient;
   private const string BaseUrl = "https://scanner.tradingview.com/vietnam/scan";
 
-  public TradingViewDataFetcher(HttpClient httpClient)
+  public TradingViewClient(HttpClient httpClient)
   {
     _httpClient = httpClient;
   }
