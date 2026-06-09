@@ -8,9 +8,9 @@ public class RankedCompany
   public int PeRank { get; set; }
   public int RoaRank { get; set; }
 
-  public StockDto ToDto()
+  public Stock ToStock()
   {
-    return new StockDto
+    return new Stock
     {
       Name = Name,
       CombinedRank = CombinedRank,

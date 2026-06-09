@@ -1,5 +1,4 @@
 using Stocker.Features.StockRanking.Services;
-using Stocker.Features.StockRanking.Validators;
 
 namespace Stocker.Features.StockRanking;
 

@@ -12,7 +12,7 @@ builder.Services.SwaggerDocument();
 builder.Services.AddFeatureDependencies();
 builder.Services.AddAuth0ApiAuthentication(options =>
 {
-  var config = builder.Configuration.GetSection("Auth0").Get<AuthenticationOptions>();
+  var config = builder.Configuration.GetSection("Auth0").Get<AuthenticationOptions>() ?? throw new ArgumentNullException("Missing configuration for authentication");
   options.Domain = config.Domain;
   options.Audience = config.Audience;
 });
@@ -20,6 +20,8 @@ builder.Services.AddAuth0ApiAuthentication(options =>
 var app = builder.Build();
 
 app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+app.UseAuthentication();
+app.UseAuthorization();
 app.UseFastEndpoints();
 app.UseSwaggerGen();
 app.UseSwaggerUi();

@@ -1,10 +1,30 @@
 using FastEndpoints;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Stocker.Features.StockRanking.Models;
 using Stocker.Features.StockRanking.Services;
-using Stocker.Features.StockRanking.Validators;
 
-namespace Stocker.Features.StockRanking.Endpoints;
+namespace Stocker.Features.StockRanking;
+
+
+public record RankingRequest(decimal? MinimumMarketcap, int NumberOfStocks);
+
+public class RankingResponse
+{
+  public int TotalRanked { get; set; }
+  public int TotalMissingCap { get; set; }
+  public List<Stock> RankedStocks { get; set; } = new();
+  public List<Stock> MissingCapStocks { get; set; } = new();
+}
+
+public class RankingRequestValidator : Validator<RankingRequest>
+{
+  public RankingRequestValidator()
+  {
+    RuleFor(x => x.MinimumMarketcap).GreaterThan(0).When(x => x is not null);
+    RuleFor(x => x.NumberOfStocks).GreaterThan(0);
+  }
+}
 
 public class RankStocksEndpoint : Endpoint<RankingRequest, RankingResponse>
 {
@@ -17,8 +37,7 @@ public class RankStocksEndpoint : Endpoint<RankingRequest, RankingResponse>
 
   public override void Configure()
   {
-    Post("/api/stocks/ranking");
-    AllowAnonymous();
+    Get("/api/stocks/ranking");
   }
 
   public override async Task HandleAsync(RankingRequest request, CancellationToken ct)
@@ -29,8 +48,8 @@ public class RankStocksEndpoint : Endpoint<RankingRequest, RankingResponse>
     {
       TotalRanked = result.TotalRanked,
       TotalMissingCap = result.TotalMissingCap,
-      RankedStocks = result.RankedStocks.ConvertAll(s => s.ToDto()),
-      MissingCapStocks = result.MissingCapStocks.ConvertAll(s => s.ToDto()),
+      RankedStocks = result.RankedStocks.ConvertAll(s => s.ToStock()),
+      MissingCapStocks = result.MissingCapStocks.ConvertAll(s => s.ToStock()),
     };
 
     await Send.OkAsync(response, ct);
