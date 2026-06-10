@@ -1,3 +1,10 @@
 namespace Stocker.Models.Options;
 
-public record MinioOptions(string Endpoint, string AccessKey, string SecretKey, string PublicBucket, string PrivateBucket);
+public class MinioOptions
+{
+  public string Endpoint { get; init; }
+  public string AccessKey { get; init; }
+  public string SecretKey { get; init; }
+  public string PublicBucket { get; init; }
+  public string PrivateBucket { get; init; }
+}

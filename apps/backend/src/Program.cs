@@ -14,6 +14,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddFastEndpoints();
 builder.Services.SwaggerDocument();
 builder.Services.AddFeatureDependencies();
+builder.Services.AddCors();
 
 // builder.Services.AddDbContext<StockerDataContext>(options =>
 // {
@@ -31,6 +32,8 @@ builder.Services.AddAuth0ApiAuthentication(options =>
   options.Audience = config.Audience;
 });
 
+builder.Services.AddAuthorization();
+
 var minioConfig = builder.Configuration.GetSection("Minio").Get<MinioOptions>() ?? throw new ArgumentException("Missing Minio configuration");
 builder.Services.AddMinio(configureClient =>
 {
@@ -45,6 +48,8 @@ app.UseCors(policy =>
   var origins = builder.Configuration.GetSection("Cors").Get<string[]>() ?? throw new ArgumentNullException("Missing cors configuration");
   policy.WithOrigins(origins).AllowAnyHeader().AllowAnyMethod();
 });
+
+
 app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
