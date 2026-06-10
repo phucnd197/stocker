@@ -57,7 +57,11 @@ export function AuthNav() {
               component={Link}
               to="/stock-ranking"
               color="inherit"
-              variant={window.location.pathname === '/stock-ranking' ? 'outlined' : 'text'}
+              variant={
+                window.location.pathname === '/stock-ranking'
+                  ? 'outlined'
+                  : 'text'
+              }
               size="small"
             >
               Stock Rankings
@@ -65,12 +69,20 @@ export function AuthNav() {
             <Box
               component={Link}
               to="/profile"
-              sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'inherit', textDecoration: 'none' }}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                color: 'inherit',
+                textDecoration: 'none',
+              }}
             >
-              <Typography variant="body2">{user.name || user.email}</Typography>
+              <Typography variant="body2">
+                {profile?.nickname || user.name || user.email}
+              </Typography>
               <Avatar
                 src={profile?.avatarUrl ?? user.picture}
-                alt={user.name || 'User'}
+                alt={profile?.nickname ?? user.name ?? 'User'}
                 sx={{ width: 32, height: 32 }}
               />
             </Box>

@@ -1,11 +1,11 @@
-import { useState } from "react";
-import { Box, Typography, Paper, Alert, Snackbar } from "@mui/material";
-import { z } from "zod";
-import type { RankingFormValues } from "../types/stockRanking";
-import { DEFAULT_FORM_VALUES } from "../types/stockRanking";
-import { useStockRanking } from "../hooks/useStockRanking";
-import { RankingFilterForm } from "./RankingFilterForm";
-import { RankedStocksTable } from "./RankedStocksTable";
+import { useState } from 'react';
+import { Box, Typography, Paper, Alert, Snackbar } from '@mui/material';
+import { z } from 'zod';
+import type { RankingFormValues } from '../types/stockRanking';
+import { DEFAULT_FORM_VALUES } from '../types/stockRanking';
+import { useStockRanking } from '../hooks/useStockRanking';
+import { RankingFilterForm } from './RankingFilterForm';
+import { RankedStocksTable } from './RankedStocksTable';
 
 interface FieldErrors {
   minimumMarketcap?: string;
@@ -17,8 +17,8 @@ const rankingFormSchema = z.object({
   minimumMarketcap: z.number().nullable().optional(),
   numberOfStocks: z
     .number()
-    .min(1, "Must be at least 1")
-    .max(500, "Cannot exceed 500"),
+    .min(1, 'Must be at least 1')
+    .max(500, 'Cannot exceed 500'),
 });
 
 export function StockRankingPage() {
@@ -31,16 +31,16 @@ export function StockRankingPage() {
   const { data, isLoading, isError, error } = useStockRanking(submittedParams);
 
   function handleFieldChange(field: keyof RankingFormValues, value: string) {
-    setValues((prev) => ({
+    setValues(prev => ({
       ...prev,
       [field]:
-        field === "minimumMarketcap" && value === ""
+        field === 'minimumMarketcap' && value === ''
           ? null
-          : field === "minimumMarketcap" || field === "numberOfStocks"
+          : field === 'minimumMarketcap' || field === 'numberOfStocks'
             ? parseFloat(value) || 0
             : value,
     }));
-    setFieldErrors((prev) => ({ ...prev, [field]: undefined }));
+    setFieldErrors(prev => ({ ...prev, [field]: undefined }));
   }
 
   function handleSubmit() {
@@ -64,7 +64,7 @@ export function StockRankingPage() {
   }
 
   return (
-    <Box sx={{ maxWidth: 1400, mx: "auto", py: 4, px: 2 }}>
+    <Box sx={{ maxWidth: 1400, mx: 'auto', py: 4, px: 2 }}>
       <Typography variant="h4" gutterBottom>
         Stock Rankings
       </Typography>
@@ -92,7 +92,7 @@ export function StockRankingPage() {
         <Alert severity="error" sx={{ mt: 3 }}>
           {error instanceof Error
             ? error.message
-            : "Failed to load stock rankings. Please try again."}
+            : 'Failed to load stock rankings. Please try again.'}
         </Alert>
       )}
 
@@ -111,7 +111,7 @@ export function StockRankingPage() {
         open={successOpen}
         autoHideDuration={3000}
         onClose={() => setSuccessOpen(false)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
         <Alert severity="info" onClose={() => setSuccessOpen(false)}>
           Rankings updated successfully

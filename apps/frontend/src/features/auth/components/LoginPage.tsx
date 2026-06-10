@@ -1,4 +1,10 @@
-import { Box, Button, Container, Typography, CircularProgress } from '@mui/material';
+import {
+  Box,
+  Button,
+  Container,
+  Typography,
+  CircularProgress,
+} from '@mui/material';
 import LoginIcon from '@mui/icons-material/Login';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import { Navigate } from 'react-router-dom';
@@ -9,7 +15,14 @@ export function LoginPage() {
 
   if (isLoading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '100vh',
+        }}
+      >
         <CircularProgress />
       </Box>
     );
@@ -38,7 +51,15 @@ export function LoginPage() {
           Financial analysis, simplified.
         </Typography>
 
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, width: '100%', maxWidth: 320 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 2,
+            width: '100%',
+            maxWidth: 320,
+          }}
+        >
           <Button
             variant="contained"
             size="large"

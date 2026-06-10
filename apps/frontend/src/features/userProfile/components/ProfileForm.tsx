@@ -14,7 +14,12 @@ interface ProfileFormProps {
   onChange: (field: keyof ProfileFormValues, value: string) => void;
 }
 
-export function ProfileForm({ email, values, errors, onChange }: ProfileFormProps) {
+export function ProfileForm({
+  email,
+  values,
+  errors,
+  onChange,
+}: ProfileFormProps) {
   return (
     <Stack spacing={2} sx={{ width: '100%' }}>
       <TextField
@@ -27,7 +32,7 @@ export function ProfileForm({ email, values, errors, onChange }: ProfileFormProp
       <TextField
         label="Nickname"
         value={values.nickname ?? ''}
-        onChange={(e) => onChange('nickname', e.target.value)}
+        onChange={e => onChange('nickname', e.target.value)}
         error={!!errors.nickname}
         helperText={errors.nickname}
         fullWidth
@@ -36,7 +41,7 @@ export function ProfileForm({ email, values, errors, onChange }: ProfileFormProp
       <TextField
         label="Phone"
         value={values.phone ?? ''}
-        onChange={(e) => onChange('phone', e.target.value)}
+        onChange={e => onChange('phone', e.target.value)}
         error={!!errors.phone}
         helperText={errors.phone}
         fullWidth
@@ -45,7 +50,7 @@ export function ProfileForm({ email, values, errors, onChange }: ProfileFormProp
       <TextField
         label="Address"
         value={values.address ?? ''}
-        onChange={(e) => onChange('address', e.target.value)}
+        onChange={e => onChange('address', e.target.value)}
         error={!!errors.address}
         helperText={errors.address}
         fullWidth

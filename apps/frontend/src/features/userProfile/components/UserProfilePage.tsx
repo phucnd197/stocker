@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from 'react';
 import {
   Box,
   Button,
@@ -7,14 +7,14 @@ import {
   Snackbar,
   Typography,
   Paper,
-} from "@mui/material";
-import { profileFormSchema } from "../types/userProfile";
-import type { ProfileFormValues } from "../types/userProfile";
-import { useUserProfile } from "../hooks/useUserProfile";
-import { useUpdateProfile } from "../hooks/useUpdateProfile";
-import { AvatarUploader } from "./AvatarUploader";
-import { ProfileForm } from "./ProfileForm";
-import { useAuth0 } from "@auth0/auth0-react";
+} from '@mui/material';
+import { profileFormSchema } from '../types/userProfile';
+import type { ProfileFormValues } from '../types/userProfile';
+import { useUserProfile } from '../hooks/useUserProfile';
+import { useUpdateProfile } from '../hooks/useUpdateProfile';
+import { AvatarUploader } from './AvatarUploader';
+import { ProfileForm } from './ProfileForm';
+import { useAuth0 } from '@auth0/auth0-react';
 
 export function UserProfilePage() {
   const { data: profile, isLoading, isError } = useUserProfile();
@@ -22,29 +22,31 @@ export function UserProfilePage() {
   const updateProfile = useUpdateProfile();
 
   const [values, setValues] = useState<ProfileFormValues>({
-    nickname: "",
-    phone: "",
-    address: "",
+    nickname: profile?.nickname,
+    phone: profile?.phone,
+    address: profile?.address,
   });
   const [fieldErrors, setFieldErrors] = useState<Partial<ProfileFormValues>>(
-    {},
+    {}
   );
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(
+    profile?.avatarUrl ?? ''
+  );
   const [avatarError, setAvatarError] = useState<string | null>(null);
   const [successOpen, setSuccessOpen] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (profile) {
-      setValues(() => ({
-        nickname: profile.nickname ?? "",
-        phone: profile.phone ?? "",
-        address: profile.address ?? "",
-      }));
-      setPreviewUrl(profile.avatarUrl ?? null);
-    }
-  }, [profile]);
+  // useEffect(() => {
+  //   if (profile) {
+  //     setValues(() => ({
+  //       nickname: profile.nickname ?? '',
+  //       phone: profile.phone ?? '',
+  //       address: profile.address ?? '',
+  //     }));
+  //     setPreviewUrl(profile.avatarUrl ?? null);
+  //   }
+  // }, [profile]);
 
   function handleFileSelected(file: File) {
     setAvatarError(null);
@@ -53,8 +55,8 @@ export function UserProfilePage() {
   }
 
   function handleFieldChange(field: keyof ProfileFormValues, value: string) {
-    setValues((prev) => ({ ...prev, [field]: value }));
-    setFieldErrors((prev) => ({ ...prev, [field]: undefined }));
+    setValues(prev => ({ ...prev, [field]: value }));
+    setFieldErrors(prev => ({ ...prev, [field]: undefined }));
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -76,19 +78,19 @@ export function UserProfilePage() {
       await updateProfile.mutateAsync({
         values: result.data,
         avatarFile,
-        existingImageKey: profile?.image ?? "",
+        existingImageKey: profile?.image ?? '',
       });
       setAvatarFile(null);
       setSuccessOpen(true);
     } catch (ex) {
       console.log(ex);
-      setSaveError("Failed to save profile. Please try again.");
+      setSaveError('Failed to save profile. Please try again.');
     }
   }
 
   if (isLoading) {
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
         <CircularProgress />
       </Box>
     );
@@ -105,7 +107,7 @@ export function UserProfilePage() {
   }
 
   return (
-    <Box sx={{ maxWidth: 480, mx: "auto", py: 4 }}>
+    <Box sx={{ maxWidth: 480, mx: 'auto', py: 4 }}>
       <Typography variant="h5" gutterBottom>
         Edit Profile
       </Typography>
@@ -114,9 +116,9 @@ export function UserProfilePage() {
         <Box component="form" onSubmit={handleSubmit}>
           <Box
             sx={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
               mb: 3,
             }}
           >
@@ -126,14 +128,14 @@ export function UserProfilePage() {
               onError={setAvatarError}
             />
             {avatarError && (
-              <Alert severity="error" sx={{ mt: 1, width: "100%" }}>
+              <Alert severity="error" sx={{ mt: 1, width: '100%' }}>
                 {avatarError}
               </Alert>
             )}
           </Box>
 
           <ProfileForm
-            email={user?.email ?? ""}
+            email={user?.email ?? ''}
             values={values}
             errors={fieldErrors}
             onChange={handleFieldChange}
@@ -152,7 +154,7 @@ export function UserProfilePage() {
             sx={{ mt: 3 }}
             disabled={updateProfile.isPending}
           >
-            {updateProfile.isPending ? "Saving…" : "Save Profile"}
+            {updateProfile.isPending ? 'Saving…' : 'Save Profile'}
           </Button>
         </Box>
       </Paper>
@@ -161,7 +163,7 @@ export function UserProfilePage() {
         open={successOpen}
         autoHideDuration={4000}
         onClose={() => setSuccessOpen(false)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
         <Alert severity="success" onClose={() => setSuccessOpen(false)}>
           Profile saved successfully.
