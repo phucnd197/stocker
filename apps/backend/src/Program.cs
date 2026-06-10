@@ -16,14 +16,10 @@ builder.Services.SwaggerDocument();
 builder.Services.AddFeatureDependencies();
 builder.Services.AddCors();
 
-// builder.Services.AddDbContext<StockerDataContext>(options =>
-// {
-//   options.UseSqlServer(builder.Configuration.GetConnectionString("SqlServer")).AddInterceptors(new SoftDeleteInterceptors());
-// });
-
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<StockerDataContext>(options =>
-    options.UseSqlServer(connectionString));
+{
+  options.UseSqlServer(builder.Configuration.GetConnectionString("SqlServer")).AddInterceptors(new SoftDeleteInterceptors());
+});
 
 builder.Services.AddAuth0ApiAuthentication(options =>
 {
