@@ -1,10 +1,7 @@
 using FastEndpoints;
 using FluentValidation;
-using Microsoft.AspNetCore.Mvc;
-using Stocker.Features.StockRanking.Models;
-using Stocker.Features.StockRanking.Services;
 
-namespace Stocker.Features.StockRanking;
+namespace Stocker.Features.Stock.StockRanking;
 
 
 public record RankingRequest(decimal? MinimumMarketcap, int NumberOfStocks);

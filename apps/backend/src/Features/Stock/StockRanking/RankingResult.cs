@@ -1,4 +1,12 @@
-namespace Stocker.Features.StockRanking.Models;
+namespace Stocker.Features.Stock.StockRanking;
+
+public class RankingResult
+{
+  public int TotalRanked { get; set; }
+  public int TotalMissingCap { get; set; }
+  public List<RankedCompany> RankedStocks { get; set; } = new();
+  public List<RankedCompany> MissingCapStocks { get; set; } = new();
+}
 
 public class RankedCompany
 {

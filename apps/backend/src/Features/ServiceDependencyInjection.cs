@@ -1,4 +1,4 @@
-using Stocker.Features.StockRanking;
+using Stocker.Features.Stock.StockRanking;
 
 namespace Stocker.Features;
 

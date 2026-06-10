@@ -1,9 +1,39 @@
-using System.Net.Http.Json;
-using System.Text.Json;
-using Stocker.Features.StockRanking.Constants;
-using Stocker.Features.StockRanking.Models;
+using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 
-namespace Stocker.Features.StockRanking.Services;
+namespace Stocker.Features.Stock.StockRanking;
+
+public record TradingViewRequest
+{
+  public required string[] Columns { get; init; }
+  public required string Preset { get; init; }
+  public int[]? Range { get; init; }
+  public SortOption? Sort { get; init; }
+  public Options Options { get; init; } = new();
+}
+
+public record SortOption(string SortBy, string SortOrder);
+
+public record Options
+{
+  public string Lang { get; init; } = "en";
+}
+
+public record TradingViewResponse
+{
+  public int TotalCount { get; init; }
+
+  public required StockDataPoint[] Data { get; init; }
+}
+
+public record StockDataPoint
+{
+  [JsonPropertyName("d")]
+  public required JsonArray Data { get; init; }
+
+  [JsonPropertyName("s")]
+  public required string StockIdentifier { get; init; }
+}
 
 public class TradingViewClient
 {

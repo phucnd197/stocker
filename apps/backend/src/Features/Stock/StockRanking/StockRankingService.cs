@@ -1,6 +1,4 @@
-using Stocker.Features.StockRanking.Models;
-
-namespace Stocker.Features.StockRanking.Services;
+namespace Stocker.Features.Stock.StockRanking;
 
 public class StockRankingService
 {
@@ -65,13 +63,4 @@ public class StockRankingService
 
     return (valid, missingCap);
   }
-}
-
-
-public class RankingResult
-{
-  public int TotalRanked { get; set; }
-  public int TotalMissingCap { get; set; }
-  public List<RankedCompany> RankedStocks { get; set; } = new();
-  public List<RankedCompany> MissingCapStocks { get; set; } = new();
 }

@@ -1,9 +1,8 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Stocker.Features.StockRanking.Constants;
-using Stocker.Features.StockRanking.Models;
 
-namespace Stocker.Features.StockRanking.Services;
+namespace Stocker.Features.Stock.StockRanking;
+
 
 public class RankingCalculator
 {

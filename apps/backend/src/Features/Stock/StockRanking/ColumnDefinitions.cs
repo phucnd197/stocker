@@ -1,4 +1,4 @@
-namespace Stocker.Features.StockRanking.Constants;
+namespace Stocker.Features.Stock.StockRanking;
 
 public static class ColumnDefinitions
 {

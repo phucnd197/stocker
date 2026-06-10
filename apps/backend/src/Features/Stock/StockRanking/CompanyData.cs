@@ -1,4 +1,6 @@
-namespace Stocker.Features.StockRanking.Models;
+namespace Stocker.Features.Stock.StockRanking;
+
+public record CompanyRank(int Rank, CompanyData CompanyData);
 
 public class CompanyData
 {
