@@ -6,10 +6,11 @@ using Stocker.Models.Options;
 
 namespace Stocker.Features.UserProfile.UploadAvatar;
 
+public record UploadAvatarResponse(string ImageKey);
 
-public class UploadAvatarEndpoint : EndpointWithoutRequest
+public class UploadAvatarEndpoint : EndpointWithoutRequest<UploadAvatarResponse>
 {
-  private static readonly string[] allowedExtensions = [".jpg", ".jpeg", ".png", ".gif", ".svg"];
+  private static readonly string[] allowedExtensions = [".jpg", ".jpeg", ".png", ".gif", ".svg", ".webp"];
   private readonly IMinioClient _minioClient;
   private readonly MinioOptions _options;
 
@@ -45,10 +46,10 @@ public class UploadAvatarEndpoint : EndpointWithoutRequest
     var objectKey = $"avatars/{Guid.NewGuid()}_{file.FileName}";
 
     using var stream = file.OpenReadStream();
-    var objectArgs = new PutObjectArgs().WithBucket(_options.PublicBucket).WithObject(objectKey).WithStreamData(stream);
+    var objectArgs = new PutObjectArgs().WithBucket(_options.PublicBucket).WithObject(objectKey).WithStreamData(stream).WithContentType(file.ContentType).WithObjectSize(file.Length);
     await _minioClient.PutObjectAsync(objectArgs, ct);
 
     // Return the key back to React immediately
-    await Send.OkAsync(new { imageKey = objectKey }, ct);
+    await Send.OkAsync(new UploadAvatarResponse(objectKey), ct);
   }
 }

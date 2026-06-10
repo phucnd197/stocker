@@ -4,6 +4,38 @@
  */
 
 export interface paths {
+    "/api/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["StockerFeaturesUserProfileGetUserProfileGetUserProfile"];
+        put?: never;
+        post: operations["StockerFeaturesUserProfileUpsertUserProfileUpsertUserProfileEndpoint"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/profile/upload-avatar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["StockerFeaturesUserProfileUploadAvatarUploadAvatarEndpoint"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/stocks/ranking": {
         parameters: {
             query?: never;
@@ -11,7 +43,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["StockerFeaturesStockRankingEndpointsRankStocksEndpoint"];
+        get: operations["StockerFeaturesStockStockRankingRankStocksEndpoint"];
         put?: never;
         post?: never;
         delete?: never;
@@ -24,15 +56,49 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        StockerFeaturesStockRankingModelsRankingResponse: {
+        StockerFeaturesUserProfileUpsertUserProfileUpsertUserProfileRequest: {
+            image?: string;
+            nickname?: string;
+            phone?: string;
+            address?: string;
+        };
+        /** @description the dto used to send an error response to the client */
+        FastEndpointsErrorResponse: {
+            /**
+             * Format: int32
+             * @description the http status code sent to the client. default is 400.
+             * @default 400
+             */
+            statusCode: number;
+            /**
+             * @description the message for the error response
+             * @default One or more errors occurred!
+             */
+            message: string;
+            /** @description the collection of errors for the current context */
+            errors?: {
+                [key: string]: string[];
+            };
+        };
+        StockerFeaturesUserProfileUploadAvatarUploadAvatarResponse: {
+            imageKey?: string;
+        };
+        StockerFeaturesUserProfileGetUserProfileUserProfileResponse: {
+            image?: string;
+            avatarUrl?: string | null;
+            nickname?: string;
+            phone?: string;
+            address?: string;
+        };
+        StockerFeaturesStockStockRankingRankingResponse: {
             /** Format: int32 */
             totalRanked?: number;
             /** Format: int32 */
             totalMissingCap?: number;
-            rankedStocks?: components["schemas"]["StockerFeaturesStockRankingModelsStockDto"][];
-            missingCapStocks?: components["schemas"]["StockerFeaturesStockRankingModelsStockDto"][];
+            rankedStocks?: components["schemas"]["StockerFeaturesStockStockRankingStock"][];
+            missingCapStocks?: components["schemas"]["StockerFeaturesStockStockRankingStock"][];
         };
-        StockerFeaturesStockRankingModelsStockDto: {
+        StockerFeaturesStockStockRankingStock: {
             name?: string;
             /** Format: int32 */
             combinedRank?: number;
@@ -61,6 +127,7 @@ export interface components {
             market?: string | null;
             stockExchange?: string | null;
         };
+        StockerFeaturesStockStockRankingRankingRequest: Record<string, never>;
     };
     responses: never;
     parameters: never;
@@ -70,7 +137,7 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    StockerFeaturesStockRankingEndpointsRankStocksEndpoint: {
+    StockerFeaturesUserProfileGetUserProfileGetUserProfile: {
         parameters: {
             query?: never;
             header?: never;
@@ -85,8 +152,119 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["StockerFeaturesStockRankingModelsRankingResponse"];
+                    "application/json": components["schemas"]["StockerFeaturesUserProfileGetUserProfileUserProfileResponse"];
                 };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    StockerFeaturesUserProfileUpsertUserProfileUpsertUserProfileEndpoint: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StockerFeaturesUserProfileUpsertUserProfileUpsertUserProfileRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["FastEndpointsErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    StockerFeaturesUserProfileUploadAvatarUploadAvatarEndpoint: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockerFeaturesUserProfileUploadAvatarUploadAvatarResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    StockerFeaturesStockStockRankingRankStocksEndpoint: {
+        parameters: {
+            query: {
+                minimumMarketcap?: number | null;
+                numberOfStocks: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockerFeaturesStockStockRankingRankingResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["FastEndpointsErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

@@ -7,7 +7,6 @@ namespace Stocker.Database;
 public class StockerDataContext : DbContext
 {
   public DbSet<UserProfile> UserProfiles { get; set; }
-  // 🛠️ FIX: Must be public and explicitly take the generic type parameter <StockerDataContext>
   public StockerDataContext(DbContextOptions<StockerDataContext> options)
       : base(options)
   {

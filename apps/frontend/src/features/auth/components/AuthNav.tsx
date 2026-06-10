@@ -9,11 +9,14 @@ import {
 } from '@mui/material';
 import LoginIcon from '@mui/icons-material/Login';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { LogoutButton } from './LogoutButton';
+import { useUserProfile } from '../../userProfile';
 
 export function AuthNav() {
   const { isAuthenticated, isLoading, user, login, signup } = useAuth();
+  const { data: profile } = useUserProfile();
 
   return (
     <AppBar position="static">
@@ -50,12 +53,18 @@ export function AuthNav() {
 
         {!isLoading && isAuthenticated && user && (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Typography variant="body2">{user.name || user.email}</Typography>
-            <Avatar
-              src={user.picture}
-              alt={user.name || 'User'}
-              sx={{ width: 32, height: 32 }}
-            />
+            <Box
+              component={Link}
+              to="/profile"
+              sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'inherit', textDecoration: 'none' }}
+            >
+              <Typography variant="body2">{user.name || user.email}</Typography>
+              <Avatar
+                src={profile?.avatarUrl ?? user.picture}
+                alt={user.name || 'User'}
+                sx={{ width: 32, height: 32 }}
+              />
+            </Box>
             <LogoutButton />
           </Box>
         )}

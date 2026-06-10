@@ -1,6 +1,7 @@
 using Auth0.AspNetCore.Authentication.Api;
 using FastEndpoints;
 using FastEndpoints.Swagger;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Minio;
 using Stocker.Database;
@@ -19,7 +20,7 @@ builder.Services.AddCors();
 
 builder.Services.AddDbContext<StockerDataContext>(options =>
 {
-  options.UseSqlServer(builder.Configuration.GetConnectionString("SqlServer")).AddInterceptors(new SoftDeleteInterceptors());
+  options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")).AddInterceptors(new SoftDeleteInterceptors());
 });
 
 builder.Services.AddAuth0ApiAuthentication(options =>
@@ -39,6 +40,7 @@ builder.Services.AddMinio(configureClient =>
   .WithCredentials(minioConfig.AccessKey, minioConfig.SecretKey)
   .WithSSL(false);
 });
+builder.Services.Configure<MinioOptions>(builder.Configuration.GetSection(key: "Minio"));
 
 var app = builder.Build();
 app.UseCors(policy =>
@@ -47,9 +49,9 @@ app.UseCors(policy =>
   policy.WithOrigins(origins).AllowAnyHeader().AllowAnyMethod();
 });
 app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+app.UseFastEndpoints();
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseFastEndpoints();
 app.UseSwaggerGen();
 app.UseSwaggerUi();
 

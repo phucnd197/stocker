@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Stocker.Database;
 
@@ -11,9 +12,11 @@ using Stocker.Database;
 namespace Stocker.Database.Migrations
 {
     [DbContext(typeof(StockerDataContext))]
-    partial class StockerDataContextModelSnapshot : ModelSnapshot
+    [Migration("20260610092321_RefactorUserProfileUserId")]
+    partial class RefactorUserProfileUserId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

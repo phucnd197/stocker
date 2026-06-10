@@ -2,7 +2,8 @@ namespace Stocker.Entities;
 
 public class UserProfile : ISoftDeletable
 {
-    public Guid UserId { get; set; }
+    public Guid Id { get; set; }
+    public string Auth0Sub { get; set; }
     public string Image { get; set; }
     public string Nickname { get; set; }
     public string Phone { get; set; }
