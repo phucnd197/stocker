@@ -35,7 +35,7 @@ public class GetUserProfile : EndpointWithoutRequest<UserProfileResponse>
 
   public override void Configure()
   {
-    Get("api/profile");
+    Get("/api/profile");
   }
 
   public override async Task HandleAsync(CancellationToken ct)

@@ -9,7 +9,7 @@ namespace Stocker.Features.UserProfile.UploadAvatar;
 
 public class UploadAvatarEndpoint : EndpointWithoutRequest
 {
-  private static readonly string[] allowedExtensions = [".jpg", ".jpeg", ".png", ".gif"];
+  private static readonly string[] allowedExtensions = [".jpg", ".jpeg", ".png", ".gif", ".svg"];
   private readonly IMinioClient _minioClient;
   private readonly MinioOptions _options;
 
@@ -43,18 +43,6 @@ public class UploadAvatarEndpoint : EndpointWithoutRequest
       return;
     }
     var objectKey = $"avatars/{Guid.NewGuid()}_{file.FileName}";
-
-    // Make a bucket on the server, if not already present.
-    var beArgs = new BucketExistsArgs()
-        .WithBucket(_options.PublicBucket);
-
-    var found = await _minioClient.BucketExistsAsync(beArgs, ct).ConfigureAwait(false);
-    if (!found)
-    {
-      var mbArgs = new MakeBucketArgs()
-          .WithBucket(_options.PublicBucket);
-      await _minioClient.MakeBucketAsync(mbArgs, ct).ConfigureAwait(false);
-    }
 
     using var stream = file.OpenReadStream();
     var objectArgs = new PutObjectArgs().WithBucket(_options.PublicBucket).WithObject(objectKey).WithStreamData(stream);

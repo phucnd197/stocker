@@ -36,7 +36,7 @@ public static partial class AppRegexPatterns
   public static partial Regex Phone();
 
   [GeneratedRegex(
-        """^(?!.*\.{2,})[a-zA-Z0-9_\-\/]+(?:\.(?i)(jpe?g|png|webp|gif|svg))$""",
+        """^(?!.*\.{2,})[a-zA-Z0-9_\-\/]+(?:\.(?i)(jpg|jpeg|png|gif|svg))$""",
         RegexOptions.Compiled
     )]
   public static partial Regex ImageKey();

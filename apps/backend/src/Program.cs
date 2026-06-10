@@ -6,6 +6,7 @@ using Minio;
 using Stocker.Database;
 using Stocker.Database.Interceptors;
 using Stocker.Features;
+using Stocker.Helpers;
 using Stocker.Middleware;
 using Stocker.Models.Options;
 
@@ -35,7 +36,8 @@ builder.Services.AddMinio(configureClient =>
 {
   configureClient
   .WithEndpoint(minioConfig.Endpoint)
-  .WithCredentials(minioConfig.AccessKey, minioConfig.SecretKey);
+  .WithCredentials(minioConfig.AccessKey, minioConfig.SecretKey)
+  .WithSSL(false);
 });
 
 var app = builder.Build();
@@ -44,13 +46,13 @@ app.UseCors(policy =>
   var origins = builder.Configuration.GetSection("Cors").Get<string[]>() ?? throw new ArgumentNullException("Missing cors configuration");
   policy.WithOrigins(origins).AllowAnyHeader().AllowAnyMethod();
 });
-
-
 app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseFastEndpoints();
 app.UseSwaggerGen();
 app.UseSwaggerUi();
+
+await EnsureBucketCreation.RunAsync(minioConfig, app.Services);
 
 app.Run();
