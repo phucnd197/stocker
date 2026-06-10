@@ -14,7 +14,7 @@ public class RankedCompany
   public required CompanyData Data { get; set; }
   public int CombinedRank { get; set; }
   public int PeRank { get; set; }
-  public int RoaRank { get; set; }
+  public int RoicRank { get; set; }
 
   public Stock ToStock()
   {
@@ -23,13 +23,13 @@ public class RankedCompany
       Name = Name,
       CombinedRank = CombinedRank,
       PeRank = PeRank,
-      RoaRank = RoaRank,
+      RoicRank = RoicRank,
       MarketCap = Data.MarketCapBasic,
       Price = Data.Close,
       Change = Data.Change,
       Volume = Data.Volume,
       PeRatio = Data.PriceEarningsTtm,
-      Roa = Data.ReturnOnAssetsFq,
+      Roic = Data.ReturnOnInvestedCapitalFq,
       Eps = Data.EarningsPerShareDilutedTtm,
       DividendsYield = Data.DividendsYieldCurrent,
       Description = Data.Description,

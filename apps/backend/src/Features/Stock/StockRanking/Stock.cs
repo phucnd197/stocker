@@ -5,7 +5,7 @@ public class Stock
   public required string Name { get; set; }
   public int CombinedRank { get; set; }
   public int PeRank { get; set; }
-  public int RoaRank { get; set; }
+  public int RoicRank { get; set; }
 
   // Market data
   public decimal? MarketCap { get; set; }
@@ -16,7 +16,7 @@ public class Stock
   // Valuation metrics
   public decimal? PeRatio { get; set; }
   public decimal? Eps { get; set; }
-  public decimal? Roa { get; set; }
+  public decimal? Roic { get; set; }
   public decimal? DividendsYield { get; set; }
 
   // Company info

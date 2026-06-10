@@ -4,6 +4,7 @@ import { AuthNav } from './features/auth/components/AuthNav';
 import { LoginPage } from './features/auth/components/LoginPage';
 import { ProtectedRoute } from './features/auth/components/ProtectedRoute';
 import { UserProfilePage } from './features/userProfile';
+import { StockRankingPage } from './features/stockRanking';
 
 function HomePage() {
   return (
@@ -38,6 +39,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <UserProfilePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/stock-ranking"
+            element={
+              <ProtectedRoute>
+                <StockRankingPage />
               </ProtectedRoute>
             }
           />

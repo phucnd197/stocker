@@ -52,7 +52,16 @@ export function AuthNav() {
         )}
 
         {!isLoading && isAuthenticated && user && (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Button
+              component={Link}
+              to="/stock-ranking"
+              color="inherit"
+              variant={window.location.pathname === '/stock-ranking' ? 'outlined' : 'text'}
+              size="small"
+            >
+              Stock Rankings
+            </Button>
             <Box
               component={Link}
               to="/profile"

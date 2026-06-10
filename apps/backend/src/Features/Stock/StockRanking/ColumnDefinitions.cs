@@ -12,7 +12,7 @@ public static class ColumnDefinitions
         "dividends_yield_current", "sector.tr", "market", "sector"
   ];
 
-  public static readonly string[] RoaColumns =
+  public static readonly string[] RoicColumns =
   [
       "name", "description", "gross_margin_ttm", "operating_margin_ttm",
         "pre_tax_margin_ttm", "net_margin_ttm", "free_cash_flow_margin_ttm",
