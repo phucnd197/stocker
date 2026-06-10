@@ -105,7 +105,7 @@ export interface components {
             /** Format: int32 */
             peRank?: number;
             /** Format: int32 */
-            roaRank?: number;
+            roicRank?: number;
             /** Format: decimal */
             marketCap?: number | null;
             /** Format: decimal */
@@ -119,7 +119,7 @@ export interface components {
             /** Format: decimal */
             eps?: number | null;
             /** Format: decimal */
-            roa?: number | null;
+            roic?: number | null;
             /** Format: decimal */
             dividendsYield?: number | null;
             description?: string | null;
@@ -232,8 +232,8 @@ export interface operations {
     StockerFeaturesStockStockRankingRankStocksEndpoint: {
         parameters: {
             query: {
-                minimumMarketcap?: number | null;
                 numberOfStocks: number;
+                minimumMarketCap?: number | null;
             };
             header?: never;
             path?: never;

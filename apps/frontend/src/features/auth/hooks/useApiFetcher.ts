@@ -23,9 +23,15 @@ export function useApiFetcher() {
     const headers: Record<string, any> = {
       ...options.headers,
     };
-    if (defaultContentType && headers["Content-Type"] == null) {
+
+    if (
+      defaultContentType &&
+      options.method !== "GET" &&
+      headers["Content-Type"] == null
+    ) {
       headers["Content-Type"] = "application/json";
     }
+
     const response = await fetch(`${API_BASE_URL}${path}`, {
       ...options,
       headers: {

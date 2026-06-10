@@ -44,5 +44,5 @@ public class CompanyData
   // Rankings (set during combination)
   public int CombinedRank { get; set; }
   public int PeRank { get; set; }
-  public int RoaRank { get; set; }
+  public int RoicRank { get; set; }
 }

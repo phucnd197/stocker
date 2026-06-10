@@ -4,7 +4,7 @@ using FluentValidation;
 namespace Stocker.Features.Stock.StockRanking;
 
 
-public record RankingRequest(decimal? MinimumMarketcap, int NumberOfStocks);
+public record RankingRequest(int NumberOfStocks, decimal? MinimumMarketCap);
 
 public class RankingResponse
 {
@@ -18,7 +18,7 @@ public class RankingRequestValidator : Validator<RankingRequest>
 {
   public RankingRequestValidator()
   {
-    RuleFor(x => x.MinimumMarketcap).GreaterThan(0).When(x => x is not null);
+    RuleFor(x => x.MinimumMarketCap).GreaterThan(0).When(x => x is not null);
     RuleFor(x => x.NumberOfStocks).GreaterThan(0);
   }
 }
@@ -37,9 +37,9 @@ public class RankStocksEndpoint : Endpoint<RankingRequest, RankingResponse>
     Get("/api/stocks/ranking");
   }
 
-  public override async Task HandleAsync(RankingRequest request, CancellationToken ct)
+  public override async Task HandleAsync(RankingRequest rq, CancellationToken ct)
   {
-    var result = await _stockRankingService.RankStocksAsync(request, ct);
+    var result = await _stockRankingService.RankStocksAsync(rq, ct);
 
     var response = new RankingResponse
     {

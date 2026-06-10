@@ -22,7 +22,7 @@ public class StockRankingService
     var rankedCompanies = _calculator.CalculateRankings(peData, roaData);
 
     // 3. Filter by market cap
-    var (valid, missingCap) = FilterByMarketCap(request.MinimumMarketcap, rankedCompanies);
+    var (valid, missingCap) = FilterByMarketCap(request.MinimumMarketCap, rankedCompanies);
 
     valid.Sort((a, b) => a.CombinedRank.CompareTo(b.CombinedRank));
 

@@ -48,12 +48,12 @@ public class RankingCalculator
 
   public Dictionary<string, RankedCompany> CalculateRankings(
       TradingViewResponse peData,
-      TradingViewResponse roaData)
+      TradingViewResponse roicData)
   {
     var peRank = ExtractRank(peData, ColumnDefinitions.PeColumns);
-    var roaRank = ExtractRank(roaData, ColumnDefinitions.RoaColumns);
+    var roicRank = ExtractRank(roicData, ColumnDefinitions.RoaColumns);
 
-    return CombineRankings(peRank, roaRank);
+    return CombineRankings(peRank, roicRank);
   }
 
   private static Dictionary<string, CompanyRank> ExtractRank(TradingViewResponse response, string[] columns)
@@ -97,17 +97,17 @@ public class RankingCalculator
 
   private static Dictionary<string, RankedCompany> CombineRankings(
       Dictionary<string, CompanyRank> peRank,
-      Dictionary<string, CompanyRank> roaRank)
+      Dictionary<string, CompanyRank> roicRank)
   {
     var finalRank = new Dictionary<string, RankedCompany>();
 
     foreach (var companyName in peRank.Keys)
     {
-      if (!roaRank.ContainsKey(companyName))
+      if (!roicRank.ContainsKey(companyName))
         continue;
 
       var peCompany = peRank[companyName];
-      var roaCompany = roaRank[companyName];
+      var roaCompany = roicRank[companyName];
 
       var combinedRank = peCompany.Rank + roaCompany.Rank;
 
@@ -152,7 +152,7 @@ public class RankingCalculator
         // Rankings
         CombinedRank = combinedRank,
         PeRank = peCompany.Rank,
-        RoaRank = roaCompany.Rank
+        RoicRank = roaCompany.Rank
       };
 
       finalRank[companyName] = new RankedCompany
@@ -161,7 +161,7 @@ public class RankingCalculator
         Data = companyData,
         CombinedRank = combinedRank,
         PeRank = peCompany.Rank,
-        RoaRank = roaCompany.Rank
+        RoicRank = roaCompany.Rank
       };
     }
 
