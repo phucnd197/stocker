@@ -30,7 +30,7 @@ public class CompanyData
   public string? Market { get; set; }
   public string? Sector { get; set; }
 
-  // Profitability metrics (ROA)
+  // Profitability metrics
   public decimal? GrossMarginTtm { get; set; }
   public decimal? OperatingMarginTtm { get; set; }
   public decimal? PreTaxMarginTtm { get; set; }

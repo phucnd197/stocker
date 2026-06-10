@@ -16,10 +16,10 @@ public class StockRankingService
   public async Task<RankingResult> RankStocksAsync(RankingRequest request, CancellationToken ct = default)
   {
     // 1. Fetch data from TradingView
-    var (peData, roaData) = await _dataFetcher.FetchAllStockDataAsync(ct);
+    var (peData, roicData) = await _dataFetcher.FetchAllStockDataAsync(ct);
 
     // 2. Calculate rankings
-    var rankedCompanies = _calculator.CalculateRankings(peData, roaData);
+    var rankedCompanies = _calculator.CalculateRankings(peData, roicData);
 
     // 3. Filter by market cap
     var (valid, missingCap) = FilterByMarketCap(request.MinimumMarketCap, rankedCompanies);

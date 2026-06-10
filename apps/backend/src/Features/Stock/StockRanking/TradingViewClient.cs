@@ -45,14 +45,14 @@ public class TradingViewClient
     _httpClient = httpClient;
   }
 
-  public async Task<(TradingViewResponse PeData, TradingViewResponse RoaData)> FetchAllStockDataAsync(CancellationToken ct)
+  public async Task<(TradingViewResponse PeData, TradingViewResponse RoicData)> FetchAllStockDataAsync(CancellationToken ct)
   {
     var peTask = GetStocksByPeAsync(ct);
-    var roaTask = GetStocksByRoaAsync(ct);
+    var roicTask = GetStocksByRoicAsync(ct);
 
-    await Task.WhenAll(peTask, roaTask);
+    await Task.WhenAll(peTask, roicTask);
 
-    return (await peTask, await roaTask);
+    return (await peTask, await roicTask);
   }
 
   private async Task<TradingViewResponse> GetStocksByPeAsync(CancellationToken ct)
@@ -67,11 +67,11 @@ public class TradingViewClient
     return await PostAsync(request, ct);
   }
 
-  private async Task<TradingViewResponse> GetStocksByRoaAsync(CancellationToken ct)
+  private async Task<TradingViewResponse> GetStocksByRoicAsync(CancellationToken ct)
   {
     var request = new TradingViewRequest
     {
-      Columns = ColumnDefinitions.RoaColumns,
+      Columns = ColumnDefinitions.RoicColumns,
       Sort = new SortOption("return_on_invested_capital_fq", "desc"),
       Preset = "all_stocks"
     };

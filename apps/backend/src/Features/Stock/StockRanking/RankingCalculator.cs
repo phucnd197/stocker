@@ -34,7 +34,7 @@ public class RankingCalculator
     { "market", (data, value) => data.Market = GetStringValue(value) },
     { "sector", (data, value) => data.Sector = GetStringValue(value) },
 
-    // Profitability metrics (ROA)
+    // Profitability metrics 
     { "gross_margin_ttm", (data, value) => data.GrossMarginTtm = GetDecimalValue(value) },
     { "operating_margin_ttm", (data, value) => data.OperatingMarginTtm = GetDecimalValue(value) },
     { "pre_tax_margin_ttm", (data, value) => data.PreTaxMarginTtm = GetDecimalValue(value) },
@@ -51,7 +51,7 @@ public class RankingCalculator
       TradingViewResponse roicData)
   {
     var peRank = ExtractRank(peData, ColumnDefinitions.PeColumns);
-    var roicRank = ExtractRank(roicData, ColumnDefinitions.RoaColumns);
+    var roicRank = ExtractRank(roicData, ColumnDefinitions.RoicColumns);
 
     return CombineRankings(peRank, roicRank);
   }
@@ -107,9 +107,9 @@ public class RankingCalculator
         continue;
 
       var peCompany = peRank[companyName];
-      var roaCompany = roicRank[companyName];
+      var roicCompany = roicRank[companyName];
 
-      var combinedRank = peCompany.Rank + roaCompany.Rank;
+      var combinedRank = peCompany.Rank + roicCompany.Rank;
 
       // Create merged company data from PE data as base
       var companyData = new CompanyData
@@ -138,21 +138,21 @@ public class RankingCalculator
         Market = peCompany.CompanyData.Market,
         Sector = peCompany.CompanyData.Sector,
 
-        // ROA metrics (from ROA data)
-        GrossMarginTtm = roaCompany.CompanyData.GrossMarginTtm,
-        OperatingMarginTtm = roaCompany.CompanyData.OperatingMarginTtm,
-        PreTaxMarginTtm = roaCompany.CompanyData.PreTaxMarginTtm,
-        NetMarginTtm = roaCompany.CompanyData.NetMarginTtm,
-        FreeCashFlowMarginTtm = roaCompany.CompanyData.FreeCashFlowMarginTtm,
-        ReturnOnAssetsFq = roaCompany.CompanyData.ReturnOnAssetsFq,
-        ReturnOnEquityFq = roaCompany.CompanyData.ReturnOnEquityFq,
-        ReturnOnInvestedCapitalFq = roaCompany.CompanyData.ReturnOnInvestedCapitalFq,
-        ResearchAndDevRatioTtm = roaCompany.CompanyData.ResearchAndDevRatioTtm,
+        // Profitability metrics 
+        GrossMarginTtm = roicCompany.CompanyData.GrossMarginTtm,
+        OperatingMarginTtm = roicCompany.CompanyData.OperatingMarginTtm,
+        PreTaxMarginTtm = roicCompany.CompanyData.PreTaxMarginTtm,
+        NetMarginTtm = roicCompany.CompanyData.NetMarginTtm,
+        FreeCashFlowMarginTtm = roicCompany.CompanyData.FreeCashFlowMarginTtm,
+        ReturnOnAssetsFq = roicCompany.CompanyData.ReturnOnAssetsFq,
+        ReturnOnEquityFq = roicCompany.CompanyData.ReturnOnEquityFq,
+        ReturnOnInvestedCapitalFq = roicCompany.CompanyData.ReturnOnInvestedCapitalFq,
+        ResearchAndDevRatioTtm = roicCompany.CompanyData.ResearchAndDevRatioTtm,
 
         // Rankings
         CombinedRank = combinedRank,
         PeRank = peCompany.Rank,
-        RoicRank = roaCompany.Rank
+        RoicRank = roicCompany.Rank
       };
 
       finalRank[companyName] = new RankedCompany
@@ -161,7 +161,7 @@ public class RankingCalculator
         Data = companyData,
         CombinedRank = combinedRank,
         PeRank = peCompany.Rank,
-        RoicRank = roaCompany.Rank
+        RoicRank = roicCompany.Rank
       };
     }
 
