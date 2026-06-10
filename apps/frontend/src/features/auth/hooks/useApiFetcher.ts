@@ -16,15 +16,21 @@ export function useApiFetcher() {
   return async function fetcher<T>(
     path: string,
     options: RequestInit = {},
+    defaultContentType: boolean = true,
   ): Promise<T> {
     const token = await getAccessTokenSilently();
 
+    const headers: Record<string, any> = {
+      ...options.headers,
+    };
+    if (defaultContentType && headers["Content-Type"] == null) {
+      headers["Content-Type"] = "application/json";
+    }
     const response = await fetch(`${API_BASE_URL}${path}`, {
       ...options,
       headers: {
-        ...options.headers,
+        ...headers,
         Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
       },
     });
 

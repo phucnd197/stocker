@@ -195,7 +195,23 @@ When this skill is invoked:
       - Re-checkpoint: "Fixes applied. All passing now?"
       - If user selects "Fix Issues" again, repeat this step
 
-12. **Complete workflow**:
+12. **Run commit phase**:
+    - Stage all changes: `git add -A`
+    - Generate a descriptive commit message based on the feature description and all phases completed
+    - Commit: `git commit -m "<message>"`
+    - Commit message format: `feature: <short description of what was generated>`
+    - If the commit fails due to pre-existing uncommitted changes, stage and include them with a separate message
+    - Use `AskUserQuestion` to present checkpoint:
+      - Question: "Changes committed. Ready to push or create a PR?"
+      - Options: ["Push to Remote", "Create PR", "Done - Stop Here"]
+    - If "Push to Remote" selected:
+      - Execute: `git push origin <current-branch>`
+    - If "Create PR" selected:
+      - Execute: `git push origin <current-branch>`
+      - Execute: `gh pr create --fill`
+    - If "Done - Stop Here" selected: Proceed to complete workflow summary
+
+13. **Complete workflow**:
     - Summarize all generated artifacts
     - Confirm feature is ready for use
 

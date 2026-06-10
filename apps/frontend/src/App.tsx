@@ -3,6 +3,7 @@ import { Container, Typography, Box } from '@mui/material';
 import { AuthNav } from './features/auth/components/AuthNav';
 import { LoginPage } from './features/auth/components/LoginPage';
 import { ProtectedRoute } from './features/auth/components/ProtectedRoute';
+import { UserProfilePage } from './features/userProfile';
 
 function HomePage() {
   return (
@@ -29,6 +30,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <HomePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <UserProfilePage />
               </ProtectedRoute>
             }
           />
