@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Stocker.Database.Migrations
+namespace Stocker.Infrastructure.Database.Migrations
 {
     /// <inheritdoc />
     public partial class RefactorUserProfile : Migration

@@ -2,7 +2,7 @@ using FastEndpoints;
 using Microsoft.Extensions.Options;
 using Minio;
 using Minio.DataModel.Args;
-using Stocker.Models.Options;
+using Stocker.Core.Settings;
 
 namespace Stocker.Features.UserProfile.UploadAvatar;
 
@@ -12,12 +12,12 @@ public class UploadAvatarEndpoint : EndpointWithoutRequest<UploadAvatarResponse>
 {
   private static readonly string[] allowedExtensions = [".jpg", ".jpeg", ".png", ".gif", ".svg", ".webp"];
   private readonly IMinioClient _minioClient;
-  private readonly MinioOptions _options;
+  private readonly MinioSettings _settings;
 
-  public UploadAvatarEndpoint(IMinioClient minioClient, IOptions<MinioOptions> options)
+  public UploadAvatarEndpoint(IMinioClient minioClient, IOptions<MinioSettings> options)
   {
     _minioClient = minioClient;
-    _options = options.Value;
+    _settings = options.Value;
   }
 
   public override void Configure()
@@ -46,7 +46,7 @@ public class UploadAvatarEndpoint : EndpointWithoutRequest<UploadAvatarResponse>
     var objectKey = $"avatars/{Guid.NewGuid()}_{file.FileName}";
 
     using var stream = file.OpenReadStream();
-    var objectArgs = new PutObjectArgs().WithBucket(_options.PublicBucket).WithObject(objectKey).WithStreamData(stream).WithContentType(file.ContentType).WithObjectSize(file.Length);
+    var objectArgs = new PutObjectArgs().WithBucket(_settings.PublicBucket).WithObject(objectKey).WithStreamData(stream).WithContentType(file.ContentType).WithObjectSize(file.Length);
     await _minioClient.PutObjectAsync(objectArgs, ct);
 
     // Return the key back to React immediately

@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Stocker.Entities;
+using Stocker.Features.UserProfile;
 
-namespace Stocker.Database.Configurations;
+namespace Stocker.Infrastructure.Database.Configurations;
 
 public class UserProfileConfiguration : IEntityTypeConfiguration<UserProfile>
 {

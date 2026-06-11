@@ -1,8 +1,9 @@
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
-using Stocker.Entities;
+using Stocker.Core.Domain;
+using Stocker.Features.UserProfile;
 
-namespace Stocker.Database;
+namespace Stocker.Infrastructure.Database;
 
 public class StockerDataContext : DbContext
 {

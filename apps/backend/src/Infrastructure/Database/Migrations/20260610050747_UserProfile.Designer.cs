@@ -5,15 +5,14 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Stocker.Database;
 
 #nullable disable
 
-namespace Stocker.Database.Migrations
+namespace Stocker.Infrastructure.Database.Migrations
 {
     [DbContext(typeof(StockerDataContext))]
-    [Migration("20260610075552_RefactorUserProfile")]
-    partial class RefactorUserProfile
+    [Migration("20260610050747_UserProfile")]
+    partial class UserProfile
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -27,7 +26,7 @@ namespace Stocker.Database.Migrations
 
             modelBuilder.Entity("Stocker.Entities.UserProfile", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<Guid>("UserId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
@@ -57,11 +56,7 @@ namespace Stocker.Database.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
+                    b.HasKey("UserId");
 
                     b.ToTable("UserProfiles");
                 });

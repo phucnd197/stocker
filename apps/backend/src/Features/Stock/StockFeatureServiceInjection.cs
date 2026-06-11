@@ -1,8 +1,8 @@
 namespace Stocker.Features.Stock.StockRanking;
 
-public static class StockRankingServiceInjection
+public static class StockFeatureServiceInjection
 {
-  public static IServiceCollection AddStockRankingDependencies(this IServiceCollection services)
+  public static IServiceCollection AddStockFeatureDependencies(this IServiceCollection services)
   {
     // Register feature services
     services.AddHttpClient<TradingViewClient>();
