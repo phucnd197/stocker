@@ -24,10 +24,22 @@ services:
       - minio-data:/data
     networks:
       - stocker-net
+  
+  redis: 
+    image: redis:7.2-alpine
+    command: redis-server
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - stocker-net
+  
 
 volumes:
   sqlserver-data:
   minio-data:
+  redis-data:
 
 networks:
   stocker-net:

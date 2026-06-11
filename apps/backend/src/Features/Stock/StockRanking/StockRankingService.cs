@@ -2,65 +2,84 @@ namespace Stocker.Features.Stock.StockRanking;
 
 public class StockRankingService
 {
-  private readonly TradingViewClient _dataFetcher;
-  private readonly RankingCalculator _calculator;
+  private readonly ITradingViewClient _dataFetcher;
 
   public StockRankingService(
-      TradingViewClient dataFetcher,
-      RankingCalculator calculator)
+      ITradingViewClient dataFetcher)
   {
     _dataFetcher = dataFetcher;
-    _calculator = calculator;
   }
 
-  public async Task<RankingResult> RankStocksAsync(RankingRequest request, CancellationToken ct = default)
+  public async Task<(List<CompanyData> rankedCompanies, List<CompanyData> missingCap)> RankStocksAsync(RankingRequest request, CancellationToken ct = default)
   {
     // 1. Fetch data from TradingView
-    var (peData, roicData) = await _dataFetcher.FetchAllStockDataAsync(ct);
+    var stockData = await _dataFetcher.FetchAllStockDataAsync(request.Refresh, ct);
 
-    // 2. Calculate rankings
-    var rankedCompanies = _calculator.CalculateRankings(peData, roicData);
+    // 2. Filter by market cap
+    var (meetMinimumMarketcap, missingCap) = FilterByMarketCap(request.MinimumMarketCap, stockData);
 
-    // 3. Filter by market cap
-    var (valid, missingCap) = FilterByMarketCap(request.MinimumMarketCap, rankedCompanies);
+    // 3. Calculate rankings
+    var rankedCompanies = CalculateRankings(meetMinimumMarketcap);
 
-    valid.Sort((a, b) => a.CombinedRank.CompareTo(b.CombinedRank));
+    rankedCompanies.Sort((a, b) => a.CombinedRank.CompareTo(b.CombinedRank));
 
-    valid = valid.Take(request.NumberOfStocks).ToList();
-
-    return new RankingResult
-    {
-      TotalRanked = valid.Count,
-      TotalMissingCap = missingCap.Count,
-      RankedStocks = valid,
-      MissingCapStocks = missingCap
-    };
+    return (rankedCompanies, missingCap);
   }
 
-  private static (List<RankedCompany> Valid, List<RankedCompany> MissingCap) FilterByMarketCap(
+  private static (List<CompanyData> Valid, List<CompanyData> MissingCap) FilterByMarketCap(
       decimal? minimumMarketCap,
-      Dictionary<string, RankedCompany> rankedCompanies)
+      CompanyData[] rankedCompanies)
   {
-    var valid = new List<RankedCompany>();
-    var missingCap = new List<RankedCompany>();
+    var valid = new List<CompanyData>();
+    var missingCap = new List<CompanyData>();
 
-    foreach (var company in rankedCompanies.Values)
+    foreach (var company in rankedCompanies)
     {
-      var marketCap = company.Data.MarketCapBasic;
+      var marketCap = company.MarketCapBasic;
 
       if (marketCap == null)
       {
         missingCap.Add(company);
       }
-      else
+      else if (minimumMarketCap is null || marketCap > minimumMarketCap)
       {
-        if (minimumMarketCap is null || marketCap > minimumMarketCap)
-        {
-          valid.Add(company);
-        }
+        valid.Add(company);
       }
     }
 
     return (valid, missingCap);
+  }
+
+  public List<CompanyData> CalculateRankings(List<CompanyData> stockData)
+  {
+    var peList = stockData.OrderBy(x => x.PriceEarningsTtm).ToArray();
+    var peRanks = new Dictionary<string, int>();
+    for (var i = 0; i < peList.Length; i++)
+    {
+      peRanks.Add(peList[i].Identifier, i);
+    }
+
+    var roicList = stockData.OrderByDescending(x => x.ReturnOnInvestedCapitalFq).ToList();
+    var roicRanks = new Dictionary<string, int>();
+    for (var i = 0; i < peList.Length; i++)
+    {
+      roicRanks.Add(roicList[i].Identifier, i);
+    }
+
+    foreach (var stock in stockData)
+    {
+      var companyName = stock.Identifier;
+      if (!roicRanks.ContainsKey(companyName))
+        continue;
+
+      var peRank = peRanks[companyName];
+      var roicRank = roicRanks[companyName];
+
+      stock.PeRank = peRank;
+      stock.RoicRank = roicRank;
+      stock.CombinedRank = peRank + roicRank;
+    }
+
+    return stockData;
   }
 }

@@ -1,3 +1,4 @@
+using System.Threading.RateLimiting;
 using Auth0.AspNetCore.Authentication.Api;
 using FastEndpoints;
 using FastEndpoints.Swagger;
@@ -43,6 +44,29 @@ builder.Services.AddMinio(configureClient =>
         .WithSSL(false);
 });
 builder.Services.Configure<MinioSettings>(builder.Configuration.GetSection(key: "Minio"));
+builder.Services.AddRateLimiter(options =>
+{
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.User.Identity?.Name ?? httpContext.Request.Headers.Host.ToString(),
+            factory: partition => new FixedWindowRateLimiterOptions
+            {
+                AutoReplenishment = true,
+                PermitLimit = 1000,
+                QueueLimit = 0,
+                Window = TimeSpan.FromMinutes(1)
+            }));
+
+    options.OnRejected = async (context, token) =>
+    {
+        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+        await context.HttpContext.Response.WriteAsJsonAsync(new { error = "Too many requests!" }, token);
+    };
+});
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration.GetConnectionString("Redis");
+});
 
 var app = builder.Build();
 app.UseCors(policy =>
@@ -52,9 +76,11 @@ app.UseCors(policy =>
     policy.WithOrigins(origins).AllowAnyHeader().AllowAnyMethod();
 });
 app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
-app.UseFastEndpoints();
+app.UseRouting();
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseFastEndpoints();
 app.UseSwaggerGen();
 app.UseSwaggerUi();
 
