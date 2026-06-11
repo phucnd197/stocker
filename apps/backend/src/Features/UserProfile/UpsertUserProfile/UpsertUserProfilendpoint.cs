@@ -4,16 +4,16 @@ using System.Text.RegularExpressions;
 using FastEndpoints;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
-using Stocker.Database;
+using Stocker.Infrastructure.Database;
 
 namespace Stocker.Features.UserProfile.UpsertUserProfile;
 
 
 public record UpsertUserProfileRequest(string Image, string Nickname, string Phone, string Address)
 {
-  public Entities.UserProfile ToEntity(string sub)
+  public UserProfile ToEntity(string sub)
   {
-    return new Entities.UserProfile
+    return new UserProfile
     {
       Auth0Sub = sub,
       Image = Image,

@@ -5,15 +5,14 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Stocker.Database;
 
 #nullable disable
 
-namespace Stocker.Database.Migrations
+namespace Stocker.Infrastructure.Database.Migrations
 {
     [DbContext(typeof(StockerDataContext))]
-    [Migration("20260610050747_UserProfile")]
-    partial class UserProfile
+    [Migration("20260610092321_RefactorUserProfileUserId")]
+    partial class RefactorUserProfileUserId
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -27,7 +26,7 @@ namespace Stocker.Database.Migrations
 
             modelBuilder.Entity("Stocker.Entities.UserProfile", b =>
                 {
-                    b.Property<Guid>("UserId")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
@@ -35,6 +34,10 @@ namespace Stocker.Database.Migrations
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Auth0Sub")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("DeletedAt")
                         .HasColumnType("datetime2");
@@ -57,7 +60,7 @@ namespace Stocker.Database.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
-                    b.HasKey("UserId");
+                    b.HasKey("Id");
 
                     b.ToTable("UserProfiles");
                 });

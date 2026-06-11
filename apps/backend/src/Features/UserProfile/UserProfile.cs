@@ -1,4 +1,6 @@
-namespace Stocker.Entities;
+using Stocker.Core.Domain;
+
+namespace Stocker.Features.UserProfile;
 
 public class UserProfile : ISoftDeletable
 {

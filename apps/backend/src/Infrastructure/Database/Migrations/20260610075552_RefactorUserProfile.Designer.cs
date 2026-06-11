@@ -5,15 +5,14 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Stocker.Database;
 
 #nullable disable
 
-namespace Stocker.Database.Migrations
+namespace Stocker.Infrastructure.Database.Migrations
 {
     [DbContext(typeof(StockerDataContext))]
-    [Migration("20260610092321_RefactorUserProfileUserId")]
-    partial class RefactorUserProfileUserId
+    [Migration("20260610075552_RefactorUserProfile")]
+    partial class RefactorUserProfile
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -36,10 +35,6 @@ namespace Stocker.Database.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<string>("Auth0Sub")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<DateTime>("DeletedAt")
                         .HasColumnType("datetime2");
 
@@ -60,6 +55,10 @@ namespace Stocker.Database.Migrations
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 

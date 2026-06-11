@@ -4,11 +4,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Stocker.Database;
 
 #nullable disable
 
-namespace Stocker.Database.Migrations
+namespace Stocker.Infrastructure.Database.Migrations
 {
     [DbContext(typeof(StockerDataContext))]
     partial class StockerDataContextModelSnapshot : ModelSnapshot

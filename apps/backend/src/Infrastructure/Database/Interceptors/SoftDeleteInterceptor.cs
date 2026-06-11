@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Stocker.Entities;
+using Stocker.Core.Domain;
 
-namespace Stocker.Database.Interceptors;
+namespace Stocker.Infrastructure.Database.Interceptors;
 
 public class SoftDeleteInterceptors : SaveChangesInterceptor
 {

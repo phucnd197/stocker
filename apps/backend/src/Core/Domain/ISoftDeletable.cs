@@ -1,4 +1,4 @@
-namespace Stocker.Entities;
+namespace Stocker.Core.Domain;
 
 public interface ISoftDeletable
 {

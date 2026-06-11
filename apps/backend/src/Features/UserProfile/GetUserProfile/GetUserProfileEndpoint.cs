@@ -2,8 +2,8 @@ using System.Security.Claims;
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Stocker.Database;
-using Stocker.Models.Options;
+using Stocker.Core.Settings;
+using Stocker.Infrastructure.Database;
 
 namespace Stocker.Features.UserProfile.GetUserProfile;
 
@@ -15,11 +15,11 @@ public class UserProfileResponse
   public string Phone { get; set; }
   public string Address { get; set; }
 
-  public static UserProfileResponse FromEntity(Entities.UserProfile entity, MinioOptions minioOptions)
+  public static UserProfileResponse FromEntity(UserProfile entity, MinioSettings minioSettings)
   {
     var avatarUrl = string.IsNullOrEmpty(entity.Image)
       ? ""
-      : $"http://{minioOptions.Endpoint}/{minioOptions.PublicBucket}/{entity.Image}";
+      : $"http://{minioSettings.Endpoint}/{minioSettings.PublicBucket}/{entity.Image}";
 
     return new UserProfileResponse
     {
@@ -35,12 +35,12 @@ public class UserProfileResponse
 public class GetUserProfile : EndpointWithoutRequest<UserProfileResponse>
 {
   private readonly StockerDataContext _context;
-  private readonly MinioOptions _minioOptions;
+  private readonly MinioSettings _minioSettings;
 
-  public GetUserProfile(StockerDataContext context, IOptions<MinioOptions> minioOptions)
+  public GetUserProfile(StockerDataContext context, IOptions<MinioSettings> minioOptions)
   {
     _context = context;
-    _minioOptions = minioOptions.Value;
+    _minioSettings = minioOptions.Value;
   }
 
   public override void Configure()
@@ -59,7 +59,7 @@ public class GetUserProfile : EndpointWithoutRequest<UserProfileResponse>
     }
 
     var entity = await _context.UserProfiles.FirstOrDefaultAsync(x => x.Auth0Sub == sub, cancellationToken: ct);
-    var response = entity is null ? new UserProfileResponse() : UserProfileResponse.FromEntity(entity, _minioOptions);
+    var response = entity is null ? new UserProfileResponse() : UserProfileResponse.FromEntity(entity, _minioSettings);
 
     await Send.OkAsync(response, ct);
   }

@@ -1,6 +1,6 @@
-namespace Stocker.Models.Options;
+namespace Stocker.Core.Settings;
 
-public class MinioOptions
+public class MinioSettings
 {
   public string Endpoint { get; set; }
   public string AccessKey { get; set; }

@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace Stocker.Database.Migrations
+namespace Stocker.Infrastructure.Database.Migrations
 {
     /// <inheritdoc />
     public partial class RefactorUserProfileUserId : Migration

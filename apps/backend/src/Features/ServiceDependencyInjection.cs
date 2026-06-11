@@ -6,7 +6,7 @@ public static class ServiceDependencyInjections
 {
   public static IServiceCollection AddFeatureDependencies(this IServiceCollection services)
   {
-    services.AddStockRankingDependencies();
+    services.AddStockFeatureDependencies();
     return services;
   }
 }
