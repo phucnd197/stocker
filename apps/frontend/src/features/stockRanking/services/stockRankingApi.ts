@@ -13,12 +13,12 @@ export function createStockRankingApi(
       const queryParams = new URLSearchParams();
 
       if (
-        params.minimumMarketcap !== null &&
-        params.minimumMarketcap !== undefined
+        params.minimumMarketCap !== null &&
+        params.minimumMarketCap !== undefined
       ) {
         queryParams.append(
           'minimumMarketcap',
-          params.minimumMarketcap.toString()
+          params.minimumMarketCap.toString()
         );
       }
       queryParams.append('numberOfStocks', params.numberOfStocks.toString());
