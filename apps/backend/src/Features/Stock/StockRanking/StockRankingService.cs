@@ -1,11 +1,12 @@
+using Stocker.Core.Clients;
+
 namespace Stocker.Features.Stock.StockRanking;
 
 public class StockRankingService
 {
   private readonly ITradingViewClient _dataFetcher;
 
-  public StockRankingService(
-      ITradingViewClient dataFetcher)
+  public StockRankingService(ITradingViewClient dataFetcher)
   {
     _dataFetcher = dataFetcher;
   }

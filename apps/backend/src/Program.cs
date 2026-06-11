@@ -3,13 +3,12 @@ using Auth0.AspNetCore.Authentication.Api;
 using FastEndpoints;
 using FastEndpoints.Swagger;
 using Microsoft.EntityFrameworkCore;
-using Minio;
 using Stocker.Core.Settings;
 using Stocker.Features;
-using Stocker.Infrastructure.Database;
-using Stocker.Infrastructure.Database.Interceptors;
-using Stocker.Infrastructure.Web.MIddleware;
+using Stocker.Infrastructure;
+using Stocker.Infrastructure.Web.Middleware;
 using Stocker.Infrastructure.Web.Startup;
+using TickerQ.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,12 +16,7 @@ builder.Services.AddFastEndpoints();
 builder.Services.SwaggerDocument();
 builder.Services.AddFeatureDependencies();
 builder.Services.AddCors();
-
-builder.Services.AddDbContext<StockerDataContext>(options =>
-{
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
-        .AddInterceptors(new SoftDeleteInterceptors());
-});
+builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddAuth0ApiAuthentication(options =>
 {
@@ -33,17 +27,6 @@ builder.Services.AddAuth0ApiAuthentication(options =>
 });
 
 builder.Services.AddAuthorization();
-
-var minioConfig = builder.Configuration.GetSection("Minio").Get<MinioSettings>() ??
-                  throw new ArgumentException("Missing Minio configuration");
-builder.Services.AddMinio(configureClient =>
-{
-    configureClient
-        .WithEndpoint(minioConfig.Endpoint)
-        .WithCredentials(minioConfig.AccessKey, minioConfig.SecretKey)
-        .WithSSL(false);
-});
-builder.Services.Configure<MinioSettings>(builder.Configuration.GetSection(key: "Minio"));
 builder.Services.AddRateLimiter(options =>
 {
     options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
@@ -63,10 +46,9 @@ builder.Services.AddRateLimiter(options =>
         await context.HttpContext.Response.WriteAsJsonAsync(new { error = "Too many requests!" }, token);
     };
 });
-builder.Services.AddStackExchangeRedisCache(options =>
-{
-    options.Configuration = builder.Configuration.GetConnectionString("Redis");
-});
+
+var minioConfig = builder.Configuration.GetSection("Minio").Get<MinioSettings>() ??
+                  throw new ArgumentException("Missing Minio configuration");
 
 var app = builder.Build();
 app.UseCors(policy =>
@@ -83,6 +65,7 @@ app.UseAuthorization();
 app.UseFastEndpoints();
 app.UseSwaggerGen();
 app.UseSwaggerUi();
+app.UseTickerQ();
 
 await EnsureBucketCreation.RunAsync(minioConfig, app.Services);
 

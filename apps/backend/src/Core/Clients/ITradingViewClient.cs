@@ -1,4 +1,6 @@
-namespace Stocker.Features.Stock.StockRanking;
+using Stocker.Features.Stock.StockRanking;
+
+namespace Stocker.Core.Clients;
 
 public interface ITradingViewClient
 {

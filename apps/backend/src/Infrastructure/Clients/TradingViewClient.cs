@@ -1,10 +1,12 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Caching.Distributed;
+using Stocker.Core.Clients;
+using Stocker.Features.Stock.StockRanking;
+using Stocker.Infrastructure.Models;
 
-namespace Stocker.Features.Stock.StockRanking;
+namespace Stocker.Infrastructure.Clients;
 
 record TradingViewRequest
 {
@@ -15,21 +17,18 @@ record TradingViewRequest
   public Options Options { get; init; } = new();
 }
 
-public record SortOption(string SortBy, string SortOrder);
+record SortOption(string SortBy, string SortOrder);
 
-public record Options
-{
-  public string Lang { get; init; } = "en";
-}
+record Options(string Lang = "en");
 
-public record TradingViewResponse
+record TradingViewResponse
 {
   public int TotalCount { get; init; }
 
   public required StockDataPoint[] Data { get; init; }
 }
 
-public record StockDataPoint
+record StockDataPoint
 {
   [JsonPropertyName("d")]
   public required JsonArray Data { get; init; }
@@ -37,6 +36,7 @@ public record StockDataPoint
   [JsonPropertyName("s")]
   public required string StockIdentifier { get; init; }
 }
+
 
 public class TradingViewClient : ITradingViewClient
 {
@@ -54,7 +54,7 @@ public class TradingViewClient : ITradingViewClient
   {
     if (!refresh)
     {
-      var cachedString = await _cache.GetStringAsync("TRADING_SCREENER", ct);
+      var cachedString = await _cache.GetStringAsync(CacheKeys.TRADING_VIEW_SCREENER, ct);
       if (!string.IsNullOrEmpty(cachedString))
       {
         var cached = JsonSerializer.Deserialize<CompanyData[]>(cachedString);
@@ -68,13 +68,12 @@ public class TradingViewClient : ITradingViewClient
     var request = new TradingViewRequest
     {
       Columns = Screener.Columns,
-      // Sort = new SortOption("price_earnings_ttm", "asc"),
       Preset = "all_stocks"
     };
 
     var response = await PostAsync(request, ct);
     var stockData = StockDataPointTransformer.Tranform(response.Data);
-    await _cache.SetStringAsync("TRADING_SCREENER", JsonSerializer.Serialize(stockData), new DistributedCacheEntryOptions
+    await _cache.SetStringAsync(CacheKeys.TRADING_VIEW_SCREENER, JsonSerializer.Serialize(stockData), new DistributedCacheEntryOptions
     {
       AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(24)
     }, ct);

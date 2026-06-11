@@ -23,6 +23,9 @@
     <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.9" />
     <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="10.7.0" />
     <PackageReference Include="Minio" Version="7.0.0" />
+    <PackageReference Include="TickerQ" Version="10.4.0" />
+    <PackageReference Include="TickerQ.Dashboard" Version="10.4.0" />
+    <PackageReference Include="TickerQ.EntityFrameworkCore" Version="10.4.0" />
   </ItemGroup>
 
   <ItemGroup>

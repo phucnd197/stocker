@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace Stocker.Infrastructure.Web.MIddleware;
+namespace Stocker.Infrastructure.Web.Middleware;
 
 public class GlobalExceptionHandlerMiddleware
 {
