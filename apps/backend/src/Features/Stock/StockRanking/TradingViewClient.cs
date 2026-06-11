@@ -73,12 +73,13 @@ public class TradingViewClient : ITradingViewClient
     };
 
     var response = await PostAsync(request, ct);
-    await _cache.SetStringAsync("TRADING_SCREENER", JsonSerializer.Serialize(response.Data), new DistributedCacheEntryOptions
+    var stockData = StockDataPointTransformer.Tranform(response.Data);
+    await _cache.SetStringAsync("TRADING_SCREENER", JsonSerializer.Serialize(stockData), new DistributedCacheEntryOptions
     {
       AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(24)
     }, ct);
 
-    return StockDataPointTransformer.Tranform(response.Data);
+    return stockData;
   }
 
   private async Task<TradingViewResponse> PostAsync(TradingViewRequest request, CancellationToken ct)
@@ -178,6 +179,7 @@ static class StockDataPointTransformer
           setter(companyData, value);
         }
       }
+      actualData[i] = companyData;
     }
 
     return actualData;
