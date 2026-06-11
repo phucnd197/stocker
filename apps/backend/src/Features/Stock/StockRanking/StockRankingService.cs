@@ -24,7 +24,7 @@ public class StockRankingService
 
     rankedCompanies.Sort((a, b) => a.CombinedRank.CompareTo(b.CombinedRank));
 
-    return (rankedCompanies, missingCap);
+    return (rankedCompanies.Take(request.NumberOfStocks).ToList(), missingCap);
   }
 
   private static (List<CompanyData> Valid, List<CompanyData> MissingCap) FilterByMarketCap(

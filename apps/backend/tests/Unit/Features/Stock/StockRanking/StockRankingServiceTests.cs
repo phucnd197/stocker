@@ -1,4 +1,5 @@
 using NSubstitute;
+using Stocker.Core.Clients;
 using Stocker.Features.Stock.StockRanking;
 using Stocker.Tests.Helpers.TestDataBuilders;
 using Xunit;
@@ -8,14 +9,12 @@ namespace Stocker.Tests.Unit.Features.Stock.StockRanking;
 public class StockRankingServiceTests
 {
   private readonly ITradingViewClient _mockTradingViewClient;
-  private readonly RankingCalculator _calculator;
   private readonly StockRankingService _service;
 
   public StockRankingServiceTests()
   {
     _mockTradingViewClient = Substitute.For<ITradingViewClient>();
-    _calculator = new RankingCalculator();
-    _service = new StockRankingService(_mockTradingViewClient, _calculator);
+    _service = new StockRankingService(_mockTradingViewClient);
   }
 
   #region Service Orchestration Tests
@@ -25,53 +24,27 @@ public class StockRankingServiceTests
   {
     // Arrange
     var request = RankingRequestBuilder.CreateDefault().Build();
-    var peData = TradingViewResponseBuilder.CreatePeResponse()
-      .AddStock("VCB", "Vietcombank", 50.5m, 1.2m, 1000000L, 1.5m, 5000000000000m, "VND", 5.0m, 10000m, 10.5m, 2.5m, "Finance", "HOSE", "Banks")
-      .Build();
-    var roicData = TradingViewResponseBuilder.CreateRoicResponse()
-      .AddStock("VCB", "Vietcombank", 45.0m, 35.0m, 30.0m, 25.0m, 20.0m, 1.5m, 12.0m, 15.0m, 2.0m)
-      .Build();
-
-    _mockTradingViewClient.FetchAllStockDataAsync(Arg.Any<CancellationToken>())
-      .Returns((peData, roicData));
+    SetupMockStockData();
 
     // Act
     await _service.RankStocksAsync(request);
 
     // Assert
-    await _mockTradingViewClient.Received(1).FetchAllStockDataAsync(Arg.Any<CancellationToken>());
+    await _mockTradingViewClient.Received(1).FetchAllStockDataAsync(false, Arg.Any<CancellationToken>());
   }
 
   [Fact]
-  public async Task RankStocksAsync_ValidRequest_ReturnsCorrectRankings()
+  public async Task RankStocksAsync_PropagatesRefreshFlag()
   {
     // Arrange
-    var request = RankingRequestBuilder.CreateDefault()
-      .WithNumberOfStocks(10)
-      .Build();
-
-    var peData = TradingViewResponseBuilder.CreatePeResponse()
-      .AddStock("VCB", "Vietcombank", 50.5m, 1.2m, 1000000L, 1.5m, 5000000000000m, "VND", 5.0m, 10000m, 10.5m, 2.5m, "Finance", "HOSE", "Banks")
-      .AddStock("VIC", "Vingroup", 25.0m, -0.5m, 2000000L, 1.2m, 3000000000000m, "VND", 8.0m, 8000m, 15.0m, 3.0m, "Real Estate", "HOSE", "Real Estate")
-      .Build();
-
-    var roicData = TradingViewResponseBuilder.CreateRoicResponse()
-      .AddStock("VCB", "Vietcombank", 45.0m, 35.0m, 30.0m, 25.0m, 20.0m, 1.5m, 12.0m, 15.0m, 2.0m)
-      .AddStock("VIC", "Vingroup", 40.0m, 30.0m, 25.0m, 20.0m, 18.0m, 1.2m, 10.0m, 12.0m, 1.5m)
-      .Build();
-
-    _mockTradingViewClient.FetchAllStockDataAsync(Arg.Any<CancellationToken>())
-      .Returns((peData, roicData));
+    var request = RankingRequestBuilder.CreateDefault().WithRefresh(true).Build();
+    SetupMockStockData();
 
     // Act
-    var result = await _service.RankStocksAsync(request);
+    await _service.RankStocksAsync(request);
 
     // Assert
-    Assert.Equal(2, result.TotalRanked);
-    Assert.Equal(0, result.TotalMissingCap);
-    Assert.Equal(2, result.RankedStocks.Count);
-    Assert.Equal(0, result.RankedStocks[0].CombinedRank);
-    Assert.Equal("VCB", result.RankedStocks[0].Name);
+    await _mockTradingViewClient.Received(1).FetchAllStockDataAsync(true, Arg.Any<CancellationToken>());
   }
 
   [Fact]
@@ -79,24 +52,169 @@ public class StockRankingServiceTests
   {
     // Arrange
     var request = RankingRequestBuilder.CreateDefault().Build();
-    var cts = new CancellationTokenSource();
+    using var cts = new CancellationTokenSource();
     var token = cts.Token;
-
-    var peData = TradingViewResponseBuilder.CreatePeResponse()
-      .AddStock("VCB", "Vietcombank", 50.5m, 1.2m, 1000000L, 1.5m, 5000000000000m, "VND", 5.0m, 10000m, 10.5m, 2.5m, "Finance", "HOSE", "Banks")
-      .Build();
-    var roicData = TradingViewResponseBuilder.CreateRoicResponse()
-      .AddStock("VCB", "Vietcombank", 45.0m, 35.0m, 30.0m, 25.0m, 20.0m, 1.5m, 12.0m, 15.0m, 2.0m)
-      .Build();
-
-    _mockTradingViewClient.FetchAllStockDataAsync(token)
-      .Returns((peData, roicData));
+    SetupMockStockData();
 
     // Act
     await _service.RankStocksAsync(request, token);
 
     // Assert
-    await _mockTradingViewClient.Received(1).FetchAllStockDataAsync(token);
+    await _mockTradingViewClient.Received(1).FetchAllStockDataAsync(Arg.Any<bool>(), token);
+  }
+
+  #endregion
+
+  #region Ranking Calculation Tests
+
+  [Fact]
+  public void CalculateRankings_TwoStocks_AssignsCorrectPeAndRoicRanks()
+  {
+    // Arrange
+    var stockData = new List<CompanyData>
+    {
+      CreateVcb(),
+      CreateVic()
+    };
+
+    // Act
+    var result = _service.CalculateRankings(stockData);
+
+    // Assert - PE ascending: VCB(5.0) rank 0, VIC(8.0) rank 1
+    // ROIC descending: VCB(15.0) rank 0, VIC(12.0) rank 1
+    Assert.Equal(2, result.Count);
+
+    var vcb = result.First(s => s.Identifier == "VCB");
+    Assert.Equal(0, vcb.PeRank);
+    Assert.Equal(0, vcb.RoicRank);
+    Assert.Equal(0, vcb.CombinedRank);
+
+    var vic = result.First(s => s.Identifier == "VIC");
+    Assert.Equal(1, vic.PeRank);
+    Assert.Equal(1, vic.RoicRank);
+    Assert.Equal(2, vic.CombinedRank);
+  }
+
+  [Fact]
+  public void CalculateRankings_FourStocks_CalculatesCorrectCombinedRank()
+  {
+    // Arrange - PE: VCB(5.0), HPG(7.0), VIC(8.0), MWG(9.0)
+    // PE ranks: VCB=0, HPG=1, VIC=2, MWG=3
+    // ROIC: HPG(20.0), VCB(15.0), VIC(12.0), MWG(10.0)
+    // ROIC ranks: HPG=0, VCB=1, VIC=2, MWG=3
+    // Combined: VCB=0+1=1, HPG=1+0=1, VIC=2+2=4, MWG=3+3=6
+    var stockData = new List<CompanyData>
+    {
+      CreateVcb(),
+      CreateVic(),
+      CreateHpg(),
+      CreateMwg()
+    };
+
+    // Act
+    var result = _service.CalculateRankings(stockData);
+
+    // Assert
+    Assert.Equal(4, result.Count);
+
+    var vcb = result.First(s => s.Identifier == "VCB");
+    Assert.Equal(0, vcb.PeRank);
+    Assert.Equal(1, vcb.RoicRank);
+    Assert.Equal(1, vcb.CombinedRank);
+
+    var hpg = result.First(s => s.Identifier == "HPG");
+    Assert.Equal(1, hpg.PeRank);
+    Assert.Equal(0, hpg.RoicRank);
+    Assert.Equal(1, hpg.CombinedRank);
+
+    var vic = result.First(s => s.Identifier == "VIC");
+    Assert.Equal(2, vic.PeRank);
+    Assert.Equal(2, vic.RoicRank);
+    Assert.Equal(4, vic.CombinedRank);
+
+    var mwg = result.First(s => s.Identifier == "MWG");
+    Assert.Equal(3, mwg.PeRank);
+    Assert.Equal(3, mwg.RoicRank);
+    Assert.Equal(6, mwg.CombinedRank);
+  }
+
+  [Fact]
+  public void CalculateRankings_SingleStock_GetsAllZeroRanks()
+  {
+    // Arrange
+    var stockData = new List<CompanyData> { CreateVcb() };
+
+    // Act
+    var result = _service.CalculateRankings(stockData);
+
+    // Assert
+    var vcb = result.First(s => s.Identifier == "VCB");
+    Assert.Equal(0, vcb.PeRank);
+    Assert.Equal(0, vcb.RoicRank);
+    Assert.Equal(0, vcb.CombinedRank);
+  }
+
+  [Fact]
+  public void CalculateRankings_NullPeValue_SortedFirstInAscendingOrder()
+  {
+    // Arrange - null PE sorts before all non-null values in OrderBy
+    // PE order: null(VCB), 7.0(HPG), 8.0(VIC)
+    // PE ranks: VCB=0, HPG=1, VIC=2
+    var stockData = new List<CompanyData>
+    {
+      new CompanyDataBuilder().WithIdentifier("VCB").WithName("Vietcombank")
+        .WithPeRatio(null).WithRoic(15.0m).Build(),
+      CreateVic(),
+      CreateHpg()
+    };
+
+    // Act
+    var result = _service.CalculateRankings(stockData);
+
+    // Assert
+    var vcb = result.First(s => s.Identifier == "VCB");
+    Assert.Equal(0, vcb.PeRank); // null PE gets best (lowest) PE rank
+    Assert.Equal(1, vcb.RoicRank); // ROIC 15.0 is second after HPG 20.0
+  }
+
+  [Fact]
+  public void CalculateRankings_NullRoicValue_SortedLastInDescendingOrder()
+  {
+    // Arrange - null ROIC sorts after all non-null values in OrderByDescending
+    // ROIC order: 15.0(VCB), 12.0(VIC), null(HPG)
+    // ROIC ranks: VCB=0, VIC=1, HPG=2
+    var stockData = new List<CompanyData>
+    {
+      CreateVcb(),
+      CreateVic(),
+      new CompanyDataBuilder().WithIdentifier("HPG").WithName("Hoa Phat")
+        .WithPeRatio(7.0m).WithRoic(null).Build()
+    };
+
+    // Act
+    var result = _service.CalculateRankings(stockData);
+
+    // Assert
+    var hpg = result.First(s => s.Identifier == "HPG");
+    Assert.Equal(2, hpg.RoicRank); // null ROIC gets worst (highest) ROIC rank
+  }
+
+  [Fact]
+  public void CalculateRankings_PreservesIndividualRanks()
+  {
+    // Arrange
+    var stockData = new List<CompanyData> { CreateVcb(), CreateVic() };
+
+    // Act
+    var result = _service.CalculateRankings(stockData);
+
+    // Assert - verify all rank properties are set on every stock
+    foreach (var stock in result)
+    {
+      Assert.True(stock.PeRank >= 0);
+      Assert.True(stock.RoicRank >= 0);
+      Assert.Equal(stock.PeRank + stock.RoicRank, stock.CombinedRank);
+    }
   }
 
   #endregion
@@ -106,32 +224,26 @@ public class StockRankingServiceTests
   [Fact]
   public async Task RankStocksAsync_WithMinimumMarketCap_FiltersCorrectly()
   {
-    // Arrange
+    // Arrange - VCB: 5T, VIC: 3T, threshold: 4T
     var request = RankingRequestBuilder.CreateDefault()
-      .WithMinimumMarketCap(4000000000000m) // 4 trillion
+      .WithMinimumMarketCap(4000000000000m)
       .Build();
 
-    var peData = TradingViewResponseBuilder.CreatePeResponse()
-      .AddStock("VCB", "Vietcombank", 50.5m, 1.2m, 1000000L, 1.5m, 5000000000000m, "VND", 5.0m, 10000m, 10.5m, 2.5m, "Finance", "HOSE", "Banks")
-      .AddStock("VIC", "Vingroup", 25.0m, -0.5m, 2000000L, 1.2m, 3000000000000m, "VND", 8.0m, 8000m, 15.0m, 3.0m, "Real Estate", "HOSE", "Real Estate")
-      .Build();
-
-    var roicData = TradingViewResponseBuilder.CreateRoicResponse()
-      .AddStock("VCB", "Vietcombank", 45.0m, 35.0m, 30.0m, 25.0m, 20.0m, 1.5m, 12.0m, 15.0m, 2.0m)
-      .AddStock("VIC", "Vingroup", 40.0m, 30.0m, 25.0m, 20.0m, 18.0m, 1.2m, 10.0m, 12.0m, 1.5m)
-      .Build();
-
-    _mockTradingViewClient.FetchAllStockDataAsync(Arg.Any<CancellationToken>())
-      .Returns((peData, roicData));
+    var stockData = new[]
+    {
+      CreateVcb(), // MarketCap = 5T - passes
+      CreateVic()  // MarketCap = 3T - filtered out
+    };
+    _mockTradingViewClient.FetchAllStockDataAsync(Arg.Any<bool>(), Arg.Any<CancellationToken>())
+      .Returns(stockData);
 
     // Act
-    var result = await _service.RankStocksAsync(request);
+    var (ranked, missingCap) = await _service.RankStocksAsync(request);
 
     // Assert
-    Assert.Equal(1, result.TotalRanked);
-    Assert.Equal(0, result.TotalMissingCap);
-    Assert.Single(result.RankedStocks);
-    Assert.Equal("VCB", result.RankedStocks[0].Name);
+    Assert.Single(ranked);
+    Assert.Equal("VCB", ranked[0].Identifier);
+    Assert.Empty(missingCap);
   }
 
   [Fact]
@@ -142,218 +254,191 @@ public class StockRankingServiceTests
       .WithMinimumMarketCap(null)
       .Build();
 
-    var peData = TradingViewResponseBuilder.CreatePeResponse()
-      .AddStock("VCB", "Vietcombank", 50.5m, 1.2m, 1000000L, 1.5m, 5000000000000m, "VND", 5.0m, 10000m, 10.5m, 2.5m, "Finance", "HOSE", "Banks")
-      .AddStock("VIC", "Vingroup", 25.0m, -0.5m, 2000000L, 1.2m, 3000000000000m, "VND", 8.0m, 8000m, 15.0m, 3.0m, "Real Estate", "HOSE", "Real Estate")
-      .Build();
-
-    var roicData = TradingViewResponseBuilder.CreateRoicResponse()
-      .AddStock("VCB", "Vietcombank", 45.0m, 35.0m, 30.0m, 25.0m, 20.0m, 1.5m, 12.0m, 15.0m, 2.0m)
-      .AddStock("VIC", "Vingroup", 40.0m, 30.0m, 25.0m, 20.0m, 18.0m, 1.2m, 10.0m, 12.0m, 1.5m)
-      .Build();
-
-    _mockTradingViewClient.FetchAllStockDataAsync(Arg.Any<CancellationToken>())
-      .Returns((peData, roicData));
+    var stockData = new[] { CreateVcb(), CreateVic() };
+    _mockTradingViewClient.FetchAllStockDataAsync(Arg.Any<bool>(), Arg.Any<CancellationToken>())
+      .Returns(stockData);
 
     // Act
-    var result = await _service.RankStocksAsync(request);
+    var (ranked, missingCap) = await _service.RankStocksAsync(request);
 
     // Assert
-    Assert.Equal(2, result.TotalRanked);
-    Assert.Equal(0, result.TotalMissingCap);
-    Assert.Equal(2, result.RankedStocks.Count);
+    Assert.Equal(2, ranked.Count);
+    Assert.Empty(missingCap);
   }
 
   [Fact]
   public async Task RankStocksAsync_SeparatesMissingCapStocks()
   {
-    // Arrange
+    // Arrange - VIC has null market cap
     var request = RankingRequestBuilder.CreateDefault().Build();
 
-    var peData = TradingViewResponseBuilder.CreatePeResponse()
-      .AddStock("VCB", "Vietcombank", 50.5m, 1.2m, 1000000L, 1.5m, 5000000000000m, "VND", 5.0m, 10000m, 10.5m, 2.5m, "Finance", "HOSE", "Banks")
-      .AddStock("VIC", "Vingroup", 25.0m, -0.5m, 2000000L, 1.2m, null, "VND", 8.0m, 8000m, 15.0m, 3.0m, "Real Estate", "HOSE", "Real Estate")
-      .Build();
-
-    var roicData = TradingViewResponseBuilder.CreateRoicResponse()
-      .AddStock("VCB", "Vietcombank", 45.0m, 35.0m, 30.0m, 25.0m, 20.0m, 1.5m, 12.0m, 15.0m, 2.0m)
-      .AddStock("VIC", "Vingroup", 40.0m, 30.0m, 25.0m, 20.0m, 18.0m, 1.2m, 10.0m, 12.0m, 1.5m)
-      .Build();
-
-    _mockTradingViewClient.FetchAllStockDataAsync(Arg.Any<CancellationToken>())
-      .Returns((peData, roicData));
+    var stockData = new[]
+    {
+      CreateVcb(),
+      new CompanyDataBuilder().WithIdentifier("VIC").WithName("Vingroup")
+        .WithPeRatio(8.0m).WithRoic(12.0m).WithMarketCap(null).Build()
+    };
+    _mockTradingViewClient.FetchAllStockDataAsync(Arg.Any<bool>(), Arg.Any<CancellationToken>())
+      .Returns(stockData);
 
     // Act
-    var result = await _service.RankStocksAsync(request);
+    var (ranked, missingCap) = await _service.RankStocksAsync(request);
 
     // Assert
-    Assert.Equal(1, result.TotalRanked);
-    Assert.Equal(1, result.TotalMissingCap);
-    Assert.Single(result.RankedStocks);
-    Assert.Single(result.MissingCapStocks);
-    Assert.Equal("VIC", result.MissingCapStocks[0].Name);
+    Assert.Single(ranked);
+    Assert.Single(missingCap);
+    Assert.Equal("VIC", missingCap[0].Identifier);
   }
 
   [Fact]
   public async Task RankStocksAsync_BelowMinimumCap_ExcludedFromResults()
   {
-    // Arrange
+    // Arrange - VCB: 5T (passes), VIC: 3T (below threshold)
     var request = RankingRequestBuilder.CreateDefault()
-      .WithMinimumMarketCap(4000000000000m) // 4 trillion
+      .WithMinimumMarketCap(4000000000000m)
       .Build();
 
-    var peData = TradingViewResponseBuilder.CreatePeResponse()
-      .AddStock("VCB", "Vietcombank", 50.5m, 1.2m, 1000000L, 1.5m, 5000000000000m, "VND", 5.0m, 10000m, 10.5m, 2.5m, "Finance", "HOSE", "Banks")
-      .AddStock("VIC", "Vingroup", 25.0m, -0.5m, 2000000L, 1.2m, 3000000000000m, "VND", 8.0m, 8000m, 15.0m, 3.0m, "Real Estate", "HOSE", "Real Estate")
-      .Build();
-
-    var roicData = TradingViewResponseBuilder.CreateRoicResponse()
-      .AddStock("VCB", "Vietcombank", 45.0m, 35.0m, 30.0m, 25.0m, 20.0m, 1.5m, 12.0m, 15.0m, 2.0m)
-      .AddStock("VIC", "Vingroup", 40.0m, 30.0m, 25.0m, 20.0m, 18.0m, 1.2m, 10.0m, 12.0m, 1.5m)
-      .Build();
-
-    _mockTradingViewClient.FetchAllStockDataAsync(Arg.Any<CancellationToken>())
-      .Returns((peData, roicData));
+    var stockData = new[] { CreateVcb(), CreateVic() };
+    _mockTradingViewClient.FetchAllStockDataAsync(Arg.Any<bool>(), Arg.Any<CancellationToken>())
+      .Returns(stockData);
 
     // Act
-    var result = await _service.RankStocksAsync(request);
+    var (ranked, missingCap) = await _service.RankStocksAsync(request);
 
     // Assert
-    Assert.Equal(1, result.TotalRanked);
-    Assert.Single(result.RankedStocks);
-    Assert.Equal("VCB", result.RankedStocks[0].Name);
-    Assert.True(result.RankedStocks.All(s => s.Data.MarketCapBasic >= 4000000000000m));
+    Assert.Single(ranked);
+    Assert.Equal("VCB", ranked[0].Identifier);
+    Assert.Empty(missingCap); // VIC has a market cap, it's just below threshold
+  }
+
+  [Fact]
+  public async Task RankStocksAsync_EmptyData_ReturnsEmptyResults()
+  {
+    // Arrange
+    var request = RankingRequestBuilder.CreateDefault().Build();
+    _mockTradingViewClient.FetchAllStockDataAsync(Arg.Any<bool>(), Arg.Any<CancellationToken>())
+      .Returns(Array.Empty<CompanyData>());
+
+    // Act
+    var (ranked, missingCap) = await _service.RankStocksAsync(request);
+
+    // Assert
+    Assert.Empty(ranked);
+    Assert.Empty(missingCap);
   }
 
   #endregion
 
-  #region Result Limiting Tests
+  #region Result Sorting Tests
 
   [Fact]
-  public async Task RankStocksAsync_TakesCorrectNumberOfStocks()
+  public async Task RankStocksAsync_SortsByCombinedRankAscending()
   {
-    // Arrange
-    var request = RankingRequestBuilder.CreateDefault()
-      .WithNumberOfStocks(2)
-      .Build();
-
-    var peData = TradingViewResponseBuilder.CreatePeResponse()
-      .AddStock("VCB", "Vietcombank", 50.5m, 1.2m, 1000000L, 1.5m, 5000000000000m, "VND", 5.0m, 10000m, 10.5m, 2.5m, "Finance", "HOSE", "Banks")
-      .AddStock("VIC", "Vingroup", 25.0m, -0.5m, 2000000L, 1.2m, 3000000000000m, "VND", 8.0m, 8000m, 15.0m, 3.0m, "Real Estate", "HOSE", "Real Estate")
-      .AddStock("HPG", "Hoa Phat", 30.0m, 0.5m, 1500000L, 1.3m, 2000000000000m, "VND", 7.0m, 9000m, 12.0m, 2.0m, "Steel", "HOSE", "Steel")
-      .Build();
-
-    var roicData = TradingViewResponseBuilder.CreateRoicResponse()
-      .AddStock("VCB", "Vietcombank", 45.0m, 35.0m, 30.0m, 25.0m, 20.0m, 1.5m, 12.0m, 15.0m, 2.0m)
-      .AddStock("VIC", "Vingroup", 40.0m, 30.0m, 25.0m, 20.0m, 18.0m, 1.2m, 10.0m, 12.0m, 1.5m)
-      .AddStock("HPG", "Hoa Phat", 35.0m, 25.0m, 20.0m, 15.0m, 16.0m, 1.0m, 8.0m, 10.0m, 1.2m)
-      .Build();
-
-    _mockTradingViewClient.FetchAllStockDataAsync(Arg.Any<CancellationToken>())
-      .Returns((peData, roicData));
+    // Arrange - Combined: VCB=0+0=0, VIC=1+1=2
+    var request = RankingRequestBuilder.CreateDefault().Build();
+    var stockData = new[] { CreateVcb(), CreateVic() };
+    _mockTradingViewClient.FetchAllStockDataAsync(Arg.Any<bool>(), Arg.Any<CancellationToken>())
+      .Returns(stockData);
 
     // Act
-    var result = await _service.RankStocksAsync(request);
+    var (ranked, _) = await _service.RankStocksAsync(request);
 
-    // Assert
-    Assert.Equal(2, result.TotalRanked);
-    Assert.Equal(2, result.RankedStocks.Count);
-  }
-
-  [Fact]
-  public async Task RankStocksAsync_SortsByCombinedRank()
-  {
-    // Arrange
-    var request = RankingRequestBuilder.CreateDefault()
-      .WithNumberOfStocks(3)
-      .Build();
-
-    var peData = TradingViewResponseBuilder.CreatePeResponse()
-      .AddStock("VCB", "Vietcombank", 50.5m, 1.2m, 1000000L, 1.5m, 5000000000000m, "VND", 5.0m, 10000m, 10.5m, 2.5m, "Finance", "HOSE", "Banks")
-      .AddStock("VIC", "Vingroup", 25.0m, -0.5m, 2000000L, 1.2m, 3000000000000m, "VND", 8.0m, 8000m, 15.0m, 3.0m, "Real Estate", "HOSE", "Real Estate")
-      .AddStock("HPG", "Hoa Phat", 30.0m, 0.5m, 1500000L, 1.3m, 2000000000000m, "VND", 7.0m, 9000m, 12.0m, 2.0m, "Steel", "HOSE", "Steel")
-      .Build();
-
-    var roicData = TradingViewResponseBuilder.CreateRoicResponse()
-      .AddStock("VCB", "Vietcombank", 45.0m, 35.0m, 30.0m, 25.0m, 20.0m, 1.5m, 12.0m, 15.0m, 2.0m)
-      .AddStock("VIC", "Vingroup", 40.0m, 30.0m, 25.0m, 20.0m, 18.0m, 1.2m, 10.0m, 12.0m, 1.5m)
-      .AddStock("HPG", "Hoa Phat", 35.0m, 25.0m, 20.0m, 15.0m, 16.0m, 1.0m, 8.0m, 10.0m, 1.2m)
-      .Build();
-
-    _mockTradingViewClient.FetchAllStockDataAsync(Arg.Any<CancellationToken>())
-      .Returns((peData, roicData));
-
-    // Act
-    var result = await _service.RankStocksAsync(request);
-
-    // Assert
-    Assert.Equal(3, result.RankedStocks.Count);
-    // Verify sorted by combined rank (ascending)
-    for (int i = 1; i < result.RankedStocks.Count; i++)
+    // Assert - sorted ascending by combined rank
+    for (int i = 1; i < ranked.Count; i++)
     {
-      Assert.True(result.RankedStocks[i].CombinedRank >= result.RankedStocks[i - 1].CombinedRank);
+      Assert.True(ranked[i].CombinedRank >= ranked[i - 1].CombinedRank);
     }
   }
 
   [Fact]
-  public async Task RankStocksAsync_RequestMoreThanAvailable_ReturnsAll()
+  public async Task RankStocksAsync_FourStocks_CorrectSortOrder()
   {
-    // Arrange
-    var request = RankingRequestBuilder.CreateDefault()
-      .WithNumberOfStocks(10)
-      .Build();
-
-    var peData = TradingViewResponseBuilder.CreatePeResponse()
-      .AddStock("VCB", "Vietcombank", 50.5m, 1.2m, 1000000L, 1.5m, 5000000000000m, "VND", 5.0m, 10000m, 10.5m, 2.5m, "Finance", "HOSE", "Banks")
-      .AddStock("VIC", "Vingroup", 25.0m, -0.5m, 2000000L, 1.2m, 3000000000000m, "VND", 8.0m, 8000m, 15.0m, 3.0m, "Real Estate", "HOSE", "Real Estate")
-      .Build();
-
-    var roicData = TradingViewResponseBuilder.CreateRoicResponse()
-      .AddStock("VCB", "Vietcombank", 45.0m, 35.0m, 30.0m, 25.0m, 20.0m, 1.5m, 12.0m, 15.0m, 2.0m)
-      .AddStock("VIC", "Vingroup", 40.0m, 30.0m, 25.0m, 20.0m, 18.0m, 1.2m, 10.0m, 12.0m, 1.5m)
-      .Build();
-
-    _mockTradingViewClient.FetchAllStockDataAsync(Arg.Any<CancellationToken>())
-      .Returns((peData, roicData));
+    // Arrange - Combined: VCB=1, HPG=1, VIC=4, MWG=6
+    var request = RankingRequestBuilder.CreateDefault().Build();
+    var stockData = new CompanyData[] { CreateVcb(), CreateVic(), CreateHpg(), CreateMwg() };
+    _mockTradingViewClient.FetchAllStockDataAsync(Arg.Any<bool>(), Arg.Any<CancellationToken>())
+      .Returns(stockData);
 
     // Act
-    var result = await _service.RankStocksAsync(request);
+    var (ranked, _) = await _service.RankStocksAsync(request);
 
     // Assert
-    Assert.Equal(2, result.TotalRanked);
-    Assert.Equal(2, result.RankedStocks.Count);
+    Assert.Equal(4, ranked.Count);
+    Assert.Equal(1, ranked[0].CombinedRank); // VCB or HPG
+    Assert.Equal(1, ranked[1].CombinedRank); // HPG or VCB
+    Assert.Equal(4, ranked[2].CombinedRank); // VIC
+    Assert.Equal(6, ranked[3].CombinedRank); // MWG
   }
 
   [Fact]
   public async Task RankStocksAsync_PreservesRankOrderInResults()
   {
     // Arrange
-    var request = RankingRequestBuilder.CreateDefault()
-      .WithNumberOfStocks(2)
-      .Build();
-
-    var peData = TradingViewResponseBuilder.CreatePeResponse()
-      .AddStock("VCB", "Vietcombank", 50.5m, 1.2m, 1000000L, 1.5m, 5000000000000m, "VND", 5.0m, 10000m, 10.5m, 2.5m, "Finance", "HOSE", "Banks")
-      .AddStock("VIC", "Vingroup", 25.0m, -0.5m, 2000000L, 1.2m, 3000000000000m, "VND", 8.0m, 8000m, 15.0m, 3.0m, "Real Estate", "HOSE", "Real Estate")
-      .Build();
-
-    var roicData = TradingViewResponseBuilder.CreateRoicResponse()
-      .AddStock("VCB", "Vietcombank", 45.0m, 35.0m, 30.0m, 25.0m, 20.0m, 1.5m, 12.0m, 15.0m, 2.0m)
-      .AddStock("VIC", "Vingroup", 40.0m, 30.0m, 25.0m, 20.0m, 18.0m, 1.2m, 10.0m, 12.0m, 1.5m)
-      .Build();
-
-    _mockTradingViewClient.FetchAllStockDataAsync(Arg.Any<CancellationToken>())
-      .Returns((peData, roicData));
+    var request = RankingRequestBuilder.CreateDefault().Build();
+    var stockData = new[] { CreateVcb(), CreateVic() };
+    _mockTradingViewClient.FetchAllStockDataAsync(Arg.Any<bool>(), Arg.Any<CancellationToken>())
+      .Returns(stockData);
 
     // Act
-    var result = await _service.RankStocksAsync(request);
+    var (ranked, _) = await _service.RankStocksAsync(request);
 
     // Assert
-    Assert.Equal(0, result.RankedStocks[0].CombinedRank);
-    Assert.Equal(2, result.RankedStocks[1].CombinedRank);
-    Assert.Equal(0, result.RankedStocks[0].PeRank);
-    Assert.Equal(1, result.RankedStocks[1].PeRank);
+    Assert.Equal(0, ranked[0].CombinedRank); // VCB
+    Assert.Equal(2, ranked[1].CombinedRank); // VIC
+    Assert.Equal(0, ranked[0].PeRank);
+    Assert.Equal(1, ranked[1].PeRank);
   }
+
+  #endregion
+
+  #region Helper Methods
+
+  private void SetupMockStockData()
+  {
+    var stockData = new[] { CreateVcb(), CreateVic() };
+    _mockTradingViewClient.FetchAllStockDataAsync(Arg.Any<bool>(), Arg.Any<CancellationToken>())
+      .Returns(stockData);
+  }
+
+  private static CompanyData CreateVcb() =>
+    new CompanyDataBuilder()
+      .WithIdentifier("VCB").WithName("Vietcombank")
+      .WithPrice(50.5m).WithChange(1.2m).WithVolume(1000000L)
+      .WithMarketCap(5000000000000m).WithFundamentalCurrencyCode("VND")
+      .WithPeRatio(5.0m).WithEps(10000m).WithEpsGrowth(10.5m).WithDividendsYield(2.5m)
+      .WithGrossMargin(45.0m).WithOperatingMargin(35.0m).WithRoic(15.0m)
+      .WithSectorTr("Finance").WithMarket("HOSE").WithSector("Banks")
+      .Build();
+
+  private static CompanyData CreateVic() =>
+    new CompanyDataBuilder()
+      .WithIdentifier("VIC").WithName("Vingroup")
+      .WithPrice(25.0m).WithChange(-0.5m).WithVolume(2000000L)
+      .WithMarketCap(3000000000000m).WithFundamentalCurrencyCode("VND")
+      .WithPeRatio(8.0m).WithEps(8000m).WithEpsGrowth(15.0m).WithDividendsYield(3.0m)
+      .WithGrossMargin(40.0m).WithOperatingMargin(30.0m).WithRoic(12.0m)
+      .WithSectorTr("Real Estate").WithMarket("HOSE").WithSector("Real Estate")
+      .Build();
+
+  private static CompanyData CreateHpg() =>
+    new CompanyDataBuilder()
+      .WithIdentifier("HPG").WithName("Hoa Phat")
+      .WithPrice(30.0m).WithChange(0.5m).WithVolume(1500000L)
+      .WithMarketCap(2000000000000m).WithFundamentalCurrencyCode("VND")
+      .WithPeRatio(7.0m).WithEps(9000m).WithEpsGrowth(12.0m).WithDividendsYield(2.0m)
+      .WithGrossMargin(50.0m).WithOperatingMargin(40.0m).WithRoic(20.0m)
+      .WithSectorTr("Steel").WithMarket("HOSE").WithSector("Steel")
+      .Build();
+
+  private static CompanyData CreateMwg() =>
+    new CompanyDataBuilder()
+      .WithIdentifier("MWG").WithName("Mobile World")
+      .WithPrice(20.0m).WithChange(0.3m).WithVolume(800000L)
+      .WithMarketCap(1000000000000m).WithFundamentalCurrencyCode("VND")
+      .WithPeRatio(9.0m).WithEps(5000m).WithEpsGrowth(8.0m).WithDividendsYield(1.5m)
+      .WithGrossMargin(35.0m).WithOperatingMargin(25.0m).WithRoic(10.0m)
+      .WithSectorTr("Retail").WithMarket("HOSE").WithSector("Retail")
+      .Build();
 
   #endregion
 }

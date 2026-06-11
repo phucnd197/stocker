@@ -6,16 +6,18 @@ export type RankingRequest =
 export type RankingResponse =
   components['schemas']['StockerFeaturesStockStockRankingRankingResponse'];
 export type Stock =
-  components['schemas']['StockerFeaturesStockStockRankingStock'];
+  components['schemas']['StockerFeaturesStockStockRankingCompanyData'];
 
 // Form values type (extends RankingRequest but with optional numberOfStocks for form)
 export interface RankingFormValues {
   minimumMarketcap?: number | null;
   numberOfStocks: number;
+  refresh: boolean;
 }
 
 // Default form values
 export const DEFAULT_FORM_VALUES: RankingFormValues = {
   minimumMarketcap: null,
   numberOfStocks: 50,
+  refresh: false,
 };

@@ -5,18 +5,15 @@
 ### 1. Interface Extraction
 - Created `ITradingViewClient` interface for proper mocking
 - Updated `TradingViewClient`, `StockRankingService`, and DI registration
-- File: `apps/backend/src/Features/Stock/StockRanking/ITradingViewClient.cs`
+- File: `apps/backend/src/Core/Clients/ITradingViewClient.cs`
 
 ### 2. Test Infrastructure
 - **Test Data Builders**:
-  - `JsonNodeFactory` - JSON node creation utilities
-  - `TradingViewResponseBuilder` - Build test TradingView responses
-  - `CompanyDataBuilder` - Build test company data
+  - `CompanyDataBuilder` - Build test company data with fluent API (covers all CompanyData properties)
   - `RankingRequestBuilder` - Build test request DTOs
 
-- **Unit Tests** (25 tests total):
-  - `RankingCalculatorTests` (13 tests) - Data extraction, ranking combination, JSON value conversion
-  - `StockRankingServiceTests` (12 tests) - Service orchestration, market cap filtering, result limiting
+- **Unit Tests** (17 tests total):
+  - `StockRankingServiceTests` (17 tests) - Service orchestration, ranking calculation, market cap filtering, result sorting
 
 - **Integration Tests** (16 tests):
   - `RankStocksEndpointTests` - HTTP endpoint testing with mocked `ITradingViewClient`
@@ -24,12 +21,12 @@
 ### 3. Key Achievement
 ✅ **Multiple stocks test** validates correct combined ranking calculation:
 - VCB: PE rank 0, ROIC rank 1, Combined rank 1
-- HPG: PE rank 2, ROIC rank 0, Combined rank 2  
-- VIC: PE rank 1, ROIC rank 2, Combined rank 3
+- HPG: PE rank 1, ROIC rank 0, Combined rank 1
+- VIC: PE rank 2, ROIC rank 2, Combined rank 4
 - MWG: PE rank 3, ROIC rank 3, Combined rank 6
 
 ## 🚀 Test Results
-- **Total Tests**: 44 tests
+- **Total Tests**: 33 tests
 - **Unit Tests**: Working ✅ (test business logic in isolation)
 - **Integration Tests**: Require infrastructure setup (see below)
 
@@ -140,7 +137,6 @@ public static class TokenTestingExtensions
 apps/backend/tests/
 ├── Unit/
 │   └── Features/Stock/StockRanking/
-│       ├── RankingCalculatorTests.cs ✅
 │       └── StockRankingServiceTests.cs ✅
 ├── Integration/
 │   ├── Features/Stock/StockRanking/
@@ -148,8 +144,6 @@ apps/backend/tests/
 │   └── TestWebApplicationFactory.cs ✅
 └── Helpers/
     └── TestDataBuilders/
-        ├── JsonNodeFactory.cs ✅
-        ├── TradingViewResponseBuilder.cs ✅
         ├── CompanyDataBuilder.cs ✅
         └── RankingRequestBuilder.cs ✅
 ```
@@ -160,8 +154,8 @@ apps/backend/tests/
 # Run all tests
 dotnet test apps/backend/tests
 
-# Run only unit tests
-dotnet test apps/backend/tests --filter "FullyQualifiedName~Unit"
+# Run only unit tests (xUnit v3 filter syntax)
+dotnet test apps/backend/tests --filter-class "Stocker.Tests.Unit.Features.Stock.StockRanking.StockRankingServiceTests"
 
 # Run with coverage
 dotnet test apps/backend/tests --collect:"XPlat Code Coverage"

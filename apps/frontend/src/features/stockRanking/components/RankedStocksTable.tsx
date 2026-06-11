@@ -1,5 +1,9 @@
-import React from 'react';
 import {
+  Alert,
+  Box,
+  Chip,
+  CircularProgress,
+  Paper,
   Table,
   TableBody,
   TableCell,
@@ -7,14 +11,10 @@ import {
   TableHead,
   TableRow,
   TableSortLabel,
-  Paper,
-  Box,
-  Typography,
-  Chip,
-  CircularProgress,
-  Alert,
   Tooltip,
+  Typography,
 } from '@mui/material';
+import React from 'react';
 import type { Stock } from '../types/stockRanking';
 
 type SortKey = keyof Stock | 'combinedRank';
@@ -189,26 +189,28 @@ export function RankedStocksTable({
               </TableCell>
               <TableCell
                 sortDirection={
-                  sortConfig.key === 'marketCap' ? sortConfig.direction : false
+                  sortConfig.key === 'marketCapBasic'
+                    ? sortConfig.direction
+                    : false
                 }
               >
                 <TableSortLabel
-                  active={sortConfig.key === 'marketCap'}
+                  active={sortConfig.key === 'marketCapBasic'}
                   direction={sortConfig.direction}
-                  onClick={() => handleSort('marketCap')}
+                  onClick={() => handleSort('marketCapBasic')}
                 >
                   <strong>Market Cap</strong>
                 </TableSortLabel>
               </TableCell>
               <TableCell
                 sortDirection={
-                  sortConfig.key === 'price' ? sortConfig.direction : false
+                  sortConfig.key === 'close' ? sortConfig.direction : false
                 }
               >
                 <TableSortLabel
-                  active={sortConfig.key === 'price'}
+                  active={sortConfig.key === 'close'}
                   direction={sortConfig.direction}
-                  onClick={() => handleSort('price')}
+                  onClick={() => handleSort('close')}
                 >
                   <strong>Price</strong>
                 </TableSortLabel>
@@ -241,54 +243,60 @@ export function RankedStocksTable({
               </TableCell>
               <TableCell
                 sortDirection={
-                  sortConfig.key === 'peRatio' ? sortConfig.direction : false
+                  sortConfig.key === 'priceEarningsTtm'
+                    ? sortConfig.direction
+                    : false
                 }
               >
                 <TableSortLabel
-                  active={sortConfig.key === 'peRatio'}
+                  active={sortConfig.key === 'priceEarningsTtm'}
                   direction={sortConfig.direction}
-                  onClick={() => handleSort('peRatio')}
+                  onClick={() => handleSort('priceEarningsTtm')}
                 >
                   <strong>PE Ratio</strong>
                 </TableSortLabel>
               </TableCell>
               <TableCell
                 sortDirection={
-                  sortConfig.key === 'eps' ? sortConfig.direction : false
+                  sortConfig.key === 'earningsPerShareDilutedTtm'
+                    ? sortConfig.direction
+                    : false
                 }
               >
                 <TableSortLabel
-                  active={sortConfig.key === 'eps'}
+                  active={sortConfig.key === 'earningsPerShareDilutedTtm'}
                   direction={sortConfig.direction}
-                  onClick={() => handleSort('eps')}
+                  onClick={() => handleSort('earningsPerShareDilutedTtm')}
                 >
                   <strong>EPS</strong>
                 </TableSortLabel>
               </TableCell>
               <TableCell
                 sortDirection={
-                  sortConfig.key === 'roic' ? sortConfig.direction : false
+                  sortConfig.key === 'returnOnInvestedCapitalFq'
+                    ? sortConfig.direction
+                    : false
                 }
               >
                 <TableSortLabel
-                  active={sortConfig.key === 'roic'}
+                  active={sortConfig.key === 'returnOnInvestedCapitalFq'}
                   direction={sortConfig.direction}
-                  onClick={() => handleSort('roic')}
+                  onClick={() => handleSort('returnOnInvestedCapitalFq')}
                 >
                   <strong>ROIC</strong>
                 </TableSortLabel>
               </TableCell>
               <TableCell
                 sortDirection={
-                  sortConfig.key === 'dividendsYield'
+                  sortConfig.key === 'dividendsYieldCurrent'
                     ? sortConfig.direction
                     : false
                 }
               >
                 <TableSortLabel
-                  active={sortConfig.key === 'dividendsYield'}
+                  active={sortConfig.key === 'dividendsYieldCurrent'}
                   direction={sortConfig.direction}
-                  onClick={() => handleSort('dividendsYield')}
+                  onClick={() => handleSort('dividendsYieldCurrent')}
                 >
                   <strong>Div Yield</strong>
                 </TableSortLabel>
@@ -308,7 +316,7 @@ export function RankedStocksTable({
                 sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
               >
                 <TableCell component="th" scope="row">
-                  <RankBadge rank={stock.combinedRank} />
+                  <RankBadge rank={index + 1} />
                 </TableCell>
                 <TableCell>
                   <Tooltip
@@ -335,10 +343,10 @@ export function RankedStocksTable({
                 <TableCell align="right">{stock.peRank ?? 'N/A'}</TableCell>
                 <TableCell align="right">{stock.roicRank ?? 'N/A'}</TableCell>
                 <TableCell align="right">
-                  {formatCurrency(stock.marketCap)}
+                  {formatCurrency(stock.marketCapBasic)}
                 </TableCell>
                 <TableCell align="right">
-                  {stock.price != null ? `$${stock.price.toFixed(2)}` : 'N/A'}
+                  {stock.close != null ? `$${stock.close.toFixed(2)}` : 'N/A'}
                 </TableCell>
                 <TableCell align="right">
                   {stock.change != null ? (
@@ -357,16 +365,20 @@ export function RankedStocksTable({
                   {formatNumber(stock.volume)}
                 </TableCell>
                 <TableCell align="right">
-                  {stock.peRatio != null ? stock.peRatio.toFixed(2) : 'N/A'}
+                  {stock.priceEarningsTtm != null
+                    ? stock.priceEarningsTtm.toFixed(2)
+                    : 'N/A'}
                 </TableCell>
                 <TableCell align="right">
-                  {stock.eps != null ? `$${stock.eps.toFixed(2)}` : 'N/A'}
+                  {stock.earningsPerShareDilutedTtm != null
+                    ? `$${stock.earningsPerShareDilutedTtm.toFixed(2)}`
+                    : 'N/A'}
                 </TableCell>
                 <TableCell align="right">
-                  {formatPercentage(stock.roic)}
+                  {formatPercentage(stock.returnOnInvestedCapitalFq)}
                 </TableCell>
                 <TableCell align="right">
-                  {formatPercentage(stock.dividendsYield)}
+                  {formatPercentage(stock.dividendsYieldCurrent)}
                 </TableCell>
                 <TableCell>
                   <Typography

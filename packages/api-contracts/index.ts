@@ -95,37 +95,60 @@ export interface components {
             totalRanked?: number;
             /** Format: int32 */
             totalMissingCap?: number;
-            rankedStocks?: components["schemas"]["StockerFeaturesStockStockRankingStock"][];
-            missingCapStocks?: components["schemas"]["StockerFeaturesStockStockRankingStock"][];
+            rankedStocks?: components["schemas"]["StockerFeaturesStockStockRankingCompanyData"][];
+            missingCapStocks?: components["schemas"]["StockerFeaturesStockStockRankingCompanyData"][];
         };
-        StockerFeaturesStockStockRankingStock: {
+        StockerFeaturesStockStockRankingCompanyData: {
             name?: string;
+            identifier?: string;
+            description?: string | null;
+            stockExchange?: string | null;
+            /** Format: decimal */
+            close?: number | null;
+            /** Format: decimal */
+            change?: number | null;
+            /** Format: int64 */
+            volume?: number | null;
+            /** Format: decimal */
+            relativeVolume10dCalc?: number | null;
+            /** Format: decimal */
+            marketCapBasic?: number | null;
+            fundamentalCurrencyCode?: string | null;
+            /** Format: decimal */
+            priceEarningsTtm?: number | null;
+            /** Format: decimal */
+            earningsPerShareDilutedTtm?: number | null;
+            /** Format: decimal */
+            earningsPerShareDilutedYoyGrowthTtm?: number | null;
+            /** Format: decimal */
+            dividendsYieldCurrent?: number | null;
+            sectorTr?: string | null;
+            market?: string | null;
+            sector?: string | null;
+            /** Format: decimal */
+            grossMarginTtm?: number | null;
+            /** Format: decimal */
+            operatingMarginTtm?: number | null;
+            /** Format: decimal */
+            preTaxMarginTtm?: number | null;
+            /** Format: decimal */
+            netMarginTtm?: number | null;
+            /** Format: decimal */
+            freeCashFlowMarginTtm?: number | null;
+            /** Format: decimal */
+            returnOnAssetsFq?: number | null;
+            /** Format: decimal */
+            returnOnEquityFq?: number | null;
+            /** Format: decimal */
+            returnOnInvestedCapitalFq?: number | null;
+            /** Format: decimal */
+            researchAndDevRatioTtm?: number | null;
             /** Format: int32 */
             combinedRank?: number;
             /** Format: int32 */
             peRank?: number;
             /** Format: int32 */
             roicRank?: number;
-            /** Format: decimal */
-            marketCap?: number | null;
-            /** Format: decimal */
-            price?: number | null;
-            /** Format: decimal */
-            change?: number | null;
-            /** Format: int64 */
-            volume?: number | null;
-            /** Format: decimal */
-            peRatio?: number | null;
-            /** Format: decimal */
-            eps?: number | null;
-            /** Format: decimal */
-            roic?: number | null;
-            /** Format: decimal */
-            dividendsYield?: number | null;
-            description?: string | null;
-            sector?: string | null;
-            market?: string | null;
-            stockExchange?: string | null;
         };
         StockerFeaturesStockStockRankingRankingRequest: Record<string, never>;
     };
@@ -234,6 +257,7 @@ export interface operations {
             query: {
                 numberOfStocks: number;
                 minimumMarketCap?: number | null;
+                refresh: boolean;
             };
             header?: never;
             path?: never;

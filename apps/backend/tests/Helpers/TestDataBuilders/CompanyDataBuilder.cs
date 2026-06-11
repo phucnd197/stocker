@@ -6,12 +6,20 @@ public class CompanyDataBuilder
 {
   private readonly CompanyData _data = new()
   {
-    Name = "TestCompany"
+    Name = "TestCompany",
+    Identifier = "TEST"
   };
 
+  // Basic info
   public CompanyDataBuilder WithName(string name)
   {
     _data.Name = name;
+    return this;
+  }
+
+  public CompanyDataBuilder WithIdentifier(string identifier)
+  {
+    _data.Identifier = identifier;
     return this;
   }
 
@@ -52,6 +60,18 @@ public class CompanyDataBuilder
     return this;
   }
 
+  public CompanyDataBuilder WithRelativeVolume10dCalc(decimal? relativeVolume)
+  {
+    _data.RelativeVolume10dCalc = relativeVolume;
+    return this;
+  }
+
+  public CompanyDataBuilder WithFundamentalCurrencyCode(string? currencyCode)
+  {
+    _data.FundamentalCurrencyCode = currencyCode;
+    return this;
+  }
+
   // PE metrics
   public CompanyDataBuilder WithPeRatio(decimal? peRatio)
   {
@@ -62,6 +82,12 @@ public class CompanyDataBuilder
   public CompanyDataBuilder WithEps(decimal? eps)
   {
     _data.EarningsPerShareDilutedTtm = eps;
+    return this;
+  }
+
+  public CompanyDataBuilder WithEpsGrowth(decimal? epsGrowth)
+  {
+    _data.EarningsPerShareDilutedYoyGrowthTtm = epsGrowth;
     return this;
   }
 
@@ -90,9 +116,39 @@ public class CompanyDataBuilder
     return this;
   }
 
+  public CompanyDataBuilder WithPreTaxMargin(decimal? preTaxMargin)
+  {
+    _data.PreTaxMarginTtm = preTaxMargin;
+    return this;
+  }
+
   public CompanyDataBuilder WithNetMargin(decimal? netMargin)
   {
     _data.NetMarginTtm = netMargin;
+    return this;
+  }
+
+  public CompanyDataBuilder WithFreeCashFlowMargin(decimal? freeCashFlowMargin)
+  {
+    _data.FreeCashFlowMarginTtm = freeCashFlowMargin;
+    return this;
+  }
+
+  public CompanyDataBuilder WithReturnOnAssets(decimal? returnOnAssets)
+  {
+    _data.ReturnOnAssetsFq = returnOnAssets;
+    return this;
+  }
+
+  public CompanyDataBuilder WithReturnOnEquity(decimal? returnOnEquity)
+  {
+    _data.ReturnOnEquityFq = returnOnEquity;
+    return this;
+  }
+
+  public CompanyDataBuilder WithResearchAndDevRatio(decimal? rndRatio)
+  {
+    _data.ResearchAndDevRatioTtm = rndRatio;
     return this;
   }
 
@@ -100,6 +156,12 @@ public class CompanyDataBuilder
   public CompanyDataBuilder WithSector(string? sector)
   {
     _data.Sector = sector;
+    return this;
+  }
+
+  public CompanyDataBuilder WithSectorTr(string? sectorTr)
+  {
+    _data.SectorTr = sectorTr;
     return this;
   }
 

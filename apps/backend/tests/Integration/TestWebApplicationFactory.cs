@@ -3,23 +3,43 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using NSubstitute;
+using Stocker.Core.Clients;
 using Stocker.Core.Settings;
 using Stocker.Infrastructure.Database;
-using Stocker.Features.Stock.StockRanking;
 using Testcontainers.Minio;
 using Testcontainers.MsSql;
-using Microsoft.IdentityModel.JsonWebTokens;
 using Minio;
 using Minio.DataModel.Args;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Hosting.Server.Features;
+using System.Net;
 
 namespace Stocker.Tests.Integration;
 
 public class TestWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
+  private IHost? _host;
+
+  public IServiceProvider ServerServices
+  {
+    get
+    {
+      if (_host == null)
+        throw new InvalidOperationException("The host has not been initialized yet.");
+
+      return _host.Services;
+    }
+  }
+
+  public HttpClient KestrelClient { get; private set; } = null!;
+
   private readonly MsSqlContainer _dbContainer = new MsSqlBuilder()
     .WithImage("mcr.microsoft.com/mssql/server:2022-latest")
     .WithPassword("YourStrong@Passw0rd")
@@ -58,6 +78,14 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>, IAsyncL
         options.EnableSensitiveDataLogging();
       });
 
+      // Replace Redis distributed cache with in-memory cache for tests
+      var redisCacheDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IDistributedCache));
+      if (redisCacheDescriptor != null)
+      {
+        services.Remove(redisCacheDescriptor);
+      }
+      services.AddDistributedMemoryCache();
+
       // Override MinioOptions with container connection
       services.Configure<MinioSettings>(options =>
       {
@@ -68,56 +96,123 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>, IAsyncL
         options.PrivateBucket = "stocker-private-bucket";
       });
 
-      // Configure fake JWT bearer authentication with RSA256 support
-      services.PostConfigure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>
-      {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-          ValidIssuer = "https://test-auth0-domain.com/",
-          ValidAudience = "https://your-api-audience.com",
-          ValidateIssuer = true,
-          ValidateAudience = true,
-          ValidateLifetime = true,
-        };
+      //1. Completely remove your production Options configuration block
+      var descriptors = services.Where(d =>
+          d.ServiceType == typeof(IConfigureOptions<JwtBearerOptions>) ||
+          d.ServiceType == typeof(IPostConfigureOptions<JwtBearerOptions>)).ToList();
 
-        // For testing, we'll bypass signature validation but still validate structure
-        options.TokenValidationParameters.SignatureValidator = (token, parameters) =>
-        {
-          var jwt = new JsonWebToken(token);
-          // Basic validation - check token structure and claims
-          return jwt;
-        };
-
-        // Require signed tokens (even though we're bypassing the actual signature check)
-        options.TokenValidationParameters.RequireSignedTokens = true;
-      });
-
-      // Remove rate limiting for tests
-      var rateLimiterDescriptors = services.Where(d =>
-        d.ServiceType?.Name?.Contains("RateLimiter") == true ||
-        d.ServiceType?.Name?.Contains("RateLimit") == true).ToList();
-      foreach (var descriptor in rateLimiterDescriptors)
+      foreach (var descriptor in descriptors)
       {
         services.Remove(descriptor);
       }
+
+      // 2. Add your pure, clean testing options configuration directly
+      services.AddAuthentication(options =>
+      {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+      });
+      // Configure JWT bearer to validate against the test signing key
+      services.Configure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>
+      {
+        // CRITICAL: Clear out Authority metadata endpoints so the test runner
+        // doesn't attempt to connect to a real internet identity server
+        options.Authority = null;
+        options.MetadataAddress = null;
+        options.RequireHttpsMetadata = false;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+          ValidIssuer = TokenTestingExtensions.Issuer,
+          ValidAudience = TokenTestingExtensions.Audience,
+          ValidateIssuer = true,
+          ValidateAudience = true,
+          ValidateLifetime = true,
+          ValidateIssuerSigningKey = false,
+          IssuerSigningKey = TokenTestingExtensions.TestSecurityKey,
+        };
+      });
+
+      // Remove rate limiting for tests
+      var rateLimiterDescriptor = services.SingleOrDefault(
+                d => d.ServiceType == typeof(IConfigureOptions<RateLimiterOptions>));
+      if (rateLimiterDescriptor is not null)
+      {
+        services.Remove(rateLimiterDescriptor);
+      }
+      // 3. Register a wide-open dummy/noop configuration so the middleware doesn't crash
+      services.Configure<RateLimiterOptions>(options =>
+      {
+        // Leave options blank so no restrictions or policies apply
+      });
     });
+  }
+
+
+
+  // Custom helper method to safely build your client without factory.CreateClient()
+  public HttpClient CreateKestrelClient()
+  {
+    if (KestrelClient is not null)
+    {
+      return KestrelClient;
+    }
+    if (_host == null)
+    {
+      throw new InvalidOperationException("The host has not been initialized yet.");
+    }
+
+    // 1. Extract the real address feature from the running Kestrel server instance
+    var server = _host.Services.GetRequiredService<IServer>();
+    var addressesFeature = server.Features.Get<IServerAddressesFeature>();
+    var baseAddress = addressesFeature?.Addresses.FirstOrDefault();
+
+    if (string.IsNullOrEmpty(baseAddress))
+    {
+      throw new InvalidOperationException("Could not retrieve the dynamic Kestrel binding address.");
+    }
+
+    // 2. Instantiate a pure HttpClient pointing directly to the TCP socket address
+    return KestrelClient = new HttpClient
+    {
+      BaseAddress = new Uri(baseAddress)
+    }.AuthenticateAs("test-user-id", ["read:stocks"]);
   }
 
   protected override IHost CreateHost(IHostBuilder builder)
   {
-    // Remove hosted services that might interfere with tests (like MinIO bucket creation)
+    // Only remove specific hosted services that interfere with tests (e.g. MinIO bucket setup, TickerQ).
+    // Do NOT remove all IHostedService entries — that would also remove Kestrel (the web server).
     builder.ConfigureServices(services =>
     {
-      var hostedServiceDescriptors = services.Where(d =>
-        d.ServiceType == typeof(IHostedService) ||
-        d.ServiceType == typeof(BackgroundService)).ToList();
-      foreach (var descriptor in hostedServiceDescriptors)
+      var toRemove = services.Where(d =>
+        d.ServiceType == typeof(BackgroundService) ||
+        (d.ServiceType == typeof(IHostedService) &&
+         d.ImplementationType?.Name?.Contains("TickerQ") == true)).ToList();
+
+      foreach (var descriptor in toRemove)
       {
         services.Remove(descriptor);
       }
     });
 
-    return base.CreateHost(builder);
+    builder.ConfigureWebHost(webBuilder =>
+        {
+          webBuilder.UseKestrel(options =>
+          {
+            // Fix: Bind directly to the IPv4 loopback address on an anonymous dynamic port
+            options.Listen(IPAddress.Loopback, 0);
+          });
+        });
+
+    _host = base.CreateHost(builder);
+
+    // Ensure database schema is created and migrations applied
+    using var scope = _host.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<StockerDataContext>();
+    db.Database.Migrate();
+
+    _host.Start();
+    return _host;
   }
 
   public async ValueTask InitializeAsync()
@@ -166,17 +261,22 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>, IAsyncL
       Console.WriteLine($"Note: MinIO bucket setup: {ex.Message}");
     }
 
-    // Create HTTP client
-    Client = CreateClient();
-
-    // Ensure database schema is created and migrations applied
-    using var scope = Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<StockerDataContext>();
-    await db.Database.MigrateAsync();
+    try
+    {
+      _ = Server;
+    }
+    catch (InvalidCastException)
+    {
+      // We intentionally swallow the cast exception here because by the time 
+      // the cast fails, CreateHost() has already executed completely,
+      // your migrations have run, and Kestrel is fully running!
+    }
   }
 
   public new async Task DisposeAsync()
   {
+    _host?.Dispose();
+    KestrelClient?.Dispose();
     await Task.WhenAll(_dbContainer.DisposeAsync().AsTask(), _minioContainer.DisposeAsync().AsTask());
     GC.SuppressFinalize(this);
   }

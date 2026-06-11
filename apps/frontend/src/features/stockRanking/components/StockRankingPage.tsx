@@ -1,11 +1,11 @@
+import { Alert, Box, Paper, Snackbar, Typography } from '@mui/material';
 import { useState } from 'react';
-import { Box, Typography, Paper, Alert, Snackbar } from '@mui/material';
 import { z } from 'zod';
+import { useStockRanking } from '../hooks/useStockRanking';
 import type { RankingFormValues } from '../types/stockRanking';
 import { DEFAULT_FORM_VALUES } from '../types/stockRanking';
-import { useStockRanking } from '../hooks/useStockRanking';
-import { RankingFilterForm } from './RankingFilterForm';
 import { RankedStocksTable } from './RankedStocksTable';
+import { RankingFilterForm } from './RankingFilterForm';
 
 interface FieldErrors {
   minimumMarketcap?: string;
@@ -19,6 +19,7 @@ const rankingFormSchema = z.object({
     .number()
     .min(1, 'Must be at least 1')
     .max(500, 'Cannot exceed 500'),
+  refresh: z.boolean(),
 });
 
 export function StockRankingPage() {
@@ -47,7 +48,11 @@ export function StockRankingPage() {
     setFieldErrors({});
 
     // Validate using Zod
-    const result = rankingFormSchema.safeParse(values);
+    const finalValues = { ...values };
+    if (finalValues.refresh == null) {
+      finalValues.refresh = false;
+    }
+    const result = rankingFormSchema.safeParse(finalValues);
     if (!result.success) {
       const errors: FieldErrors = {};
       for (const issue of result.error.issues) {

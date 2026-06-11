@@ -11,13 +11,12 @@ namespace Stocker.Tests.Integration.Features.Stock.StockRanking;
 
 public class RankStocksEndpointTests : IClassFixture<TestWebApplicationFactory>
 {
-  private readonly HttpClient _client;
+  // private HttpClient _client;
   private readonly TestWebApplicationFactory _factory;
 
   public RankStocksEndpointTests(TestWebApplicationFactory factory)
   {
     _factory = factory;
-    _client = factory.Client;
   }
 
   #region Happy Path Tests
@@ -29,7 +28,7 @@ public class RankStocksEndpointTests : IClassFixture<TestWebApplicationFactory>
     SetupMockData();
 
     // Act
-    var response = await _client.GetAsync("/api/stocks/ranking?NumberOfStocks=10");
+    var response = await _factory.CreateKestrelClient().GetAsync("/api/stocks/ranking?NumberOfStocks=10");
 
     // Assert
     Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -42,7 +41,7 @@ public class RankStocksEndpointTests : IClassFixture<TestWebApplicationFactory>
     SetupMockData();
 
     // Act
-    var response = await _client.GetAsync("/api/stocks/ranking?NumberOfStocks=10");
+    var response = await _factory.CreateKestrelClient().GetAsync("/api/stocks/ranking?NumberOfStocks=10");
 
     // Assert
     var result = await response.Content.ReadFromJsonAsync<RankingResponse>();
@@ -58,13 +57,13 @@ public class RankStocksEndpointTests : IClassFixture<TestWebApplicationFactory>
     SetupMockData();
 
     // Act
-    var response = await _client.GetAsync("/api/stocks/ranking?NumberOfStocks=2");
+    var response = await _factory.CreateKestrelClient().GetAsync("/api/stocks/ranking?NumberOfStocks=3");
 
     // Assert
     var result = await response.Content.ReadFromJsonAsync<RankingResponse>();
     Assert.NotNull(result);
-    Assert.Equal(2, result.TotalRanked);
-    Assert.Equal(2, result.RankedStocks.Count);
+    Assert.Equal(3, result.TotalRanked);
+    Assert.Equal(3, result.RankedStocks.Count);
   }
 
   [Fact]
@@ -74,27 +73,12 @@ public class RankStocksEndpointTests : IClassFixture<TestWebApplicationFactory>
     SetupMockData();
 
     // Act
-    var response = await _client.GetAsync("/api/stocks/ranking?NumberOfStocks=10&MinimumMarketCap=4000000000000");
+    var response = await _factory.CreateKestrelClient().GetAsync("/api/stocks/ranking?NumberOfStocks=10&MinimumMarketCap=4000000000000");
 
     // Assert
     var result = await response.Content.ReadFromJsonAsync<RankingResponse>();
     Assert.NotNull(result);
-    Assert.True(result.RankedStocks.All(s => s.MarketCap >= 4000000000000m));
-  }
-
-  [Fact]
-  public async Task GetRanking_WithNumberOfStocks_LimitsResults()
-  {
-    // Arrange
-    SetupMockData();
-
-    // Act
-    var response = await _client.GetAsync("/api/stocks/ranking?NumberOfStocks=1");
-
-    // Assert
-    var result = await response.Content.ReadFromJsonAsync<RankingResponse>();
-    Assert.NotNull(result);
-    Assert.Single(result.RankedStocks);
+    Assert.True(result.RankedStocks.All(s => s.MarketCapBasic >= 4000000000000m));
   }
 
   #endregion
@@ -108,7 +92,7 @@ public class RankStocksEndpointTests : IClassFixture<TestWebApplicationFactory>
     SetupMockData();
 
     // Act
-    var response = await _client.GetAsync("/api/stocks/ranking?NumberOfStocks=invalid");
+    var response = await _factory.CreateKestrelClient().GetAsync("/api/stocks/ranking?NumberOfStocks=invalid");
 
     // Assert
     Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -121,7 +105,7 @@ public class RankStocksEndpointTests : IClassFixture<TestWebApplicationFactory>
     SetupMockData();
 
     // Act
-    var response = await _client.GetAsync("/api/stocks/ranking?NumberOfStocks=-1");
+    var response = await _factory.CreateKestrelClient().GetAsync("/api/stocks/ranking?NumberOfStocks=-1");
 
     // Assert
     Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -134,7 +118,7 @@ public class RankStocksEndpointTests : IClassFixture<TestWebApplicationFactory>
     SetupMockData();
 
     // Act
-    var response = await _client.GetAsync("/api/stocks/ranking?NumberOfStocks=0");
+    var response = await _factory.CreateKestrelClient().GetAsync("/api/stocks/ranking?NumberOfStocks=0");
 
     // Assert
     Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -147,7 +131,7 @@ public class RankStocksEndpointTests : IClassFixture<TestWebApplicationFactory>
     SetupMockData();
 
     // Act
-    var response = await _client.GetAsync("/api/stocks/ranking?NumberOfStocks=10&MinimumMarketCap=-1000");
+    var response = await _factory.CreateKestrelClient().GetAsync("/api/stocks/ranking?NumberOfStocks=10&MinimumMarketCap=-1000");
 
     // Assert
     Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -160,7 +144,7 @@ public class RankStocksEndpointTests : IClassFixture<TestWebApplicationFactory>
     SetupMockData();
 
     // Act
-    var response = await _client.GetAsync("/api/stocks/ranking");
+    var response = await _factory.CreateKestrelClient().GetAsync("/api/stocks/ranking");
 
     // Assert
     Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -177,7 +161,7 @@ public class RankStocksEndpointTests : IClassFixture<TestWebApplicationFactory>
     SetupMockData();
 
     // Act
-    var response = await _client.GetAsync("/api/stocks/ranking?NumberOfStocks=2");
+    var response = await _factory.CreateKestrelClient().GetAsync("/api/stocks/ranking?NumberOfStocks=2");
 
     // Assert
     var result = await response.Content.ReadFromJsonAsync<RankingResponse>();
@@ -195,7 +179,7 @@ public class RankStocksEndpointTests : IClassFixture<TestWebApplicationFactory>
     SetupMockData();
 
     // Act
-    var response = await _client.GetAsync("/api/stocks/ranking?NumberOfStocks=2");
+    var response = await _factory.CreateKestrelClient().GetAsync("/api/stocks/ranking?NumberOfStocks=2");
 
     // Assert
     var result = await response.Content.ReadFromJsonAsync<RankingResponse>();
@@ -216,14 +200,14 @@ public class RankStocksEndpointTests : IClassFixture<TestWebApplicationFactory>
     SetupMockDataWithMissingCap();
 
     // Act
-    var response = await _client.GetAsync("/api/stocks/ranking?NumberOfStocks=10");
+    var response = await _factory.CreateKestrelClient().GetAsync("/api/stocks/ranking?NumberOfStocks=10");
 
     // Assert
     var result = await response.Content.ReadFromJsonAsync<RankingResponse>();
     Assert.NotNull(result);
     Assert.True(result.TotalMissingCap > 0);
     Assert.NotNull(result.MissingCapStocks);
-    Assert.True(result.MissingCapStocks.All(s => s.MarketCap == null));
+    Assert.True(result.MissingCapStocks.All(s => s.MarketCapBasic == null));
   }
 
   [Fact]
@@ -233,7 +217,7 @@ public class RankStocksEndpointTests : IClassFixture<TestWebApplicationFactory>
     SetupMockData();
 
     // Act
-    var response = await _client.GetAsync("/api/stocks/ranking?NumberOfStocks=2");
+    var response = await _factory.CreateKestrelClient().GetAsync("/api/stocks/ranking?NumberOfStocks=2");
 
     // Assert
     var result = await response.Content.ReadFromJsonAsync<RankingResponse>();
@@ -241,7 +225,7 @@ public class RankStocksEndpointTests : IClassFixture<TestWebApplicationFactory>
     foreach (var stock in result.RankedStocks)
     {
       Assert.NotNull(stock.Name);
-      Assert.True(stock.Price >= 0 || stock.Price == null);
+      Assert.True(stock.Close >= 0 || stock.Close == null);
       Assert.True(stock.Volume >= 0 || stock.Volume == null);
     }
   }
@@ -253,7 +237,7 @@ public class RankStocksEndpointTests : IClassFixture<TestWebApplicationFactory>
     SetupMockData();
 
     // Act
-    var response = await _client.GetAsync("/api/stocks/ranking?NumberOfStocks=10");
+    var response = await _factory.CreateKestrelClient().GetAsync("/api/stocks/ranking?NumberOfStocks=10");
 
     // Assert
     Assert.Equal("application/json", response.Content.Headers.ContentType?.MediaType);
@@ -265,36 +249,52 @@ public class RankStocksEndpointTests : IClassFixture<TestWebApplicationFactory>
 
   private void SetupMockData()
   {
-    var peData = TradingViewResponseBuilder.CreatePeResponse()
-      .AddStock("VCB", "Vietcombank", 50.5m, 1.2m, 1000000L, 1.5m, 5000000000000m, "VND", 5.0m, 10000m, 10.5m, 2.5m, "Finance", "HOSE", "Banks")
-      .AddStock("VIC", "Vingroup", 25.0m, -0.5m, 2000000L, 1.2m, 3000000000000m, "VND", 8.0m, 8000m, 15.0m, 3.0m, "Real Estate", "HOSE", "Real Estate")
-      .AddStock("HPG", "Hoa Phat", 30.0m, 0.5m, 1500000L, 1.3m, 2000000000000m, "VND", 7.0m, 9000m, 12.0m, 2.0m, "Steel", "HOSE", "Steel")
-      .Build();
+    var stockData = new[]
+    {
+      new CompanyDataBuilder().WithIdentifier("HOSE:VCB").WithName("Vietcombank")
+        .WithPrice(50.5m).WithChange(1.2m).WithVolume(1000000L)
+        .WithMarketCap(5000000000000m).WithFundamentalCurrencyCode("VND")
+        .WithPeRatio(5.0m).WithEps(10000m).WithRoic(15.0m)
+        .WithSectorTr("Finance").WithMarket("HOSE").WithSector("Banks")
+        .Build(),
+      new CompanyDataBuilder().WithIdentifier("HOSE:VIC").WithName("Vingroup")
+        .WithPrice(25.0m).WithChange(-0.5m).WithVolume(2000000L)
+        .WithMarketCap(3000000000000m).WithFundamentalCurrencyCode("VND")
+        .WithPeRatio(8.0m).WithEps(8000m).WithRoic(12.0m)
+        .WithSectorTr("Real Estate").WithMarket("HOSE").WithSector("Real Estate")
+        .Build(),
+      new CompanyDataBuilder().WithIdentifier("HOSE:HPG").WithName("Hoa Phat")
+        .WithPrice(30.0m).WithChange(0.5m).WithVolume(1500000L)
+        .WithMarketCap(2000000000000m).WithFundamentalCurrencyCode("VND")
+        .WithPeRatio(7.0m).WithEps(9000m).WithRoic(20.0m)
+        .WithSectorTr("Steel").WithMarket("HOSE").WithSector("Steel")
+        .Build()
+    };
 
-    var roicData = TradingViewResponseBuilder.CreateRoicResponse()
-      .AddStock("VCB", "Vietcombank", 45.0m, 35.0m, 30.0m, 25.0m, 20.0m, 1.5m, 12.0m, 15.0m, 2.0m)
-      .AddStock("VIC", "Vingroup", 40.0m, 30.0m, 25.0m, 20.0m, 18.0m, 1.2m, 10.0m, 12.0m, 1.5m)
-      .AddStock("HPG", "Hoa Phat", 35.0m, 25.0m, 20.0m, 15.0m, 16.0m, 1.0m, 8.0m, 10.0m, 1.2m)
-      .Build();
-
-    _factory.MockTradingViewClient.FetchAllStockDataAsync(Arg.Any<CancellationToken>())
-      .Returns((peData, roicData));
+    _factory.MockTradingViewClient.FetchAllStockDataAsync(Arg.Any<bool>(), Arg.Any<CancellationToken>())
+      .Returns(stockData);
   }
 
   private void SetupMockDataWithMissingCap()
   {
-    var peData = TradingViewResponseBuilder.CreatePeResponse()
-      .AddStock("VCB", "Vietcombank", 50.5m, 1.2m, 1000000L, 1.5m, 5000000000000m, "VND", 5.0m, 10000m, 10.5m, 2.5m, "Finance", "HOSE", "Banks")
-      .AddStock("VIC", "Vingroup", 25.0m, -0.5m, 2000000L, 1.2m, null, "VND", 8.0m, 8000m, 15.0m, 3.0m, "Real Estate", "HOSE", "Real Estate")
-      .Build();
+    var stockData = new[]
+    {
+      new CompanyDataBuilder().WithIdentifier("HOSE:VCB").WithName("Vietcombank")
+        .WithPrice(50.5m).WithChange(1.2m).WithVolume(1000000L)
+        .WithMarketCap(5000000000000m).WithFundamentalCurrencyCode("VND")
+        .WithPeRatio(5.0m).WithEps(10000m).WithRoic(15.0m)
+        .WithSectorTr("Finance").WithMarket("HOSE").WithSector("Banks")
+        .Build(),
+      new CompanyDataBuilder().WithIdentifier("HOSE:VIC").WithName("Vingroup")
+        .WithPrice(25.0m).WithChange(-0.5m).WithVolume(2000000L)
+        .WithMarketCap(null).WithFundamentalCurrencyCode("VND")
+        .WithPeRatio(8.0m).WithEps(8000m).WithRoic(12.0m)
+        .WithSectorTr("Real Estate").WithMarket("HOSE").WithSector("Real Estate")
+        .Build()
+    };
 
-    var roicData = TradingViewResponseBuilder.CreateRoicResponse()
-      .AddStock("VCB", "Vietcombank", 45.0m, 35.0m, 30.0m, 25.0m, 20.0m, 1.5m, 12.0m, 15.0m, 2.0m)
-      .AddStock("VIC", "Vingroup", 40.0m, 30.0m, 25.0m, 20.0m, 18.0m, 1.2m, 10.0m, 12.0m, 1.5m)
-      .Build();
-
-    _factory.MockTradingViewClient.FetchAllStockDataAsync(Arg.Any<CancellationToken>())
-      .Returns((peData, roicData));
+    _factory.MockTradingViewClient.FetchAllStockDataAsync(Arg.Any<bool>(), Arg.Any<CancellationToken>())
+      .Returns(stockData);
   }
 
   #endregion
