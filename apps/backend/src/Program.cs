@@ -1,10 +1,12 @@
 using System.Threading.RateLimiting;
-using Auth0.AspNetCore.Authentication.Api;
 using FastEndpoints;
 using FastEndpoints.Swagger;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using OpenTelemetry.Logs;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using Stocker.Core.Settings;
 using Stocker.Features;
 using Stocker.Infrastructure;
@@ -73,6 +75,30 @@ builder.Services.AddRateLimiter(options =>
 
 var minioConfig = builder.Configuration.GetSection("Minio").Get<MinioSettings>() ??
                   throw new ArgumentException("Missing Minio configuration");
+
+var serviceName = "Stocker";
+builder.Services.AddOpenTelemetry()
+    .ConfigureResource(resource => resource.AddService(serviceName))
+    .WithMetrics(metrics =>
+    {
+        metrics.AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddOtlpExporter();
+    })
+    .WithTracing(tracing =>
+    {
+        tracing.AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddOtlpExporter();
+    });
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddOpenTelemetry(options =>
+{
+    options.IncludeScopes = true;
+    options.IncludeFormattedMessage = true;
+    options.AddOtlpExporter();
+});
 
 var app = builder.Build();
 app.UseCors(policy =>

@@ -1,0 +1,40 @@
+# tempo.yaml - Tempo configuration for local development
+stream_over_http_enabled: true
+server:
+  http_listen_port: 3200
+
+# Accept traces from multiple protocols
+distributor:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: "0.0.0.0:4317"
+        http:
+          endpoint: "0.0.0.0:4318"
+    zipkin:
+      endpoint: "0.0.0.0:9411"
+    jaeger:
+      protocols:
+        thrift_http:
+          endpoint: "0.0.0.0:14268"
+        grpc:
+          endpoint: "0.0.0.0:14250"
+
+# Ingester configuration for batching traces before storage
+ingester:
+  max_block_duration: 5m
+
+# Compactor reduces storage size by merging small blocks
+compactor:
+  compaction:
+    block_retention: 48h
+
+# Storage backend configuration
+storage:
+  trace:
+    backend: local
+    wal:
+      path: /var/tempo/wal
+    local:
+      path: /var/tempo/blocks
