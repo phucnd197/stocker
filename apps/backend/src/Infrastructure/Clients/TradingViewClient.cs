@@ -1,10 +1,116 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
+using Microsoft.Extensions.Caching.Distributed;
+using Stocker.Core.Clients;
+using Stocker.Features.Stock.StockRanking;
+using Stocker.Infrastructure.Models;
 
-namespace Stocker.Features.Stock.StockRanking;
+namespace Stocker.Infrastructure.Clients;
+
+record TradingViewRequest
+{
+  public required string[] Columns { get; init; }
+  public required string Preset { get; init; }
+  public int[]? Range { get; init; }
+  public SortOption? Sort { get; init; }
+  public Options Options { get; init; } = new();
+}
+
+record SortOption(string SortBy, string SortOrder);
+
+record Options(string Lang = "en");
+
+record TradingViewResponse
+{
+  public int TotalCount { get; init; }
+
+  public required StockDataPoint[] Data { get; init; }
+}
+
+record StockDataPoint
+{
+  [JsonPropertyName("d")]
+  public required JsonArray Data { get; init; }
+
+  [JsonPropertyName("s")]
+  public required string StockIdentifier { get; init; }
+}
 
 
-public class RankingCalculator
+public class TradingViewClient : ITradingViewClient
+{
+  private readonly HttpClient _httpClient;
+  private readonly IDistributedCache _cache;
+  private const string BaseUrl = "https://scanner.tradingview.com/america/scan";
+
+  public TradingViewClient(HttpClient httpClient, IDistributedCache cache)
+  {
+    _httpClient = httpClient;
+    _cache = cache;
+  }
+
+  public async Task<CompanyData[]> FetchAllStockDataAsync(bool refresh, CancellationToken ct)
+  {
+    if (!refresh)
+    {
+      var cachedString = await _cache.GetStringAsync(CacheKeys.TRADING_VIEW_SCREENER, ct);
+      if (!string.IsNullOrEmpty(cachedString))
+      {
+        var cached = JsonSerializer.Deserialize<CompanyData[]>(cachedString);
+        if (cached is { Length: > 0 })
+        {
+          return cached;
+        }
+      }
+    }
+
+    var request = new TradingViewRequest
+    {
+      Columns = Screener.Columns,
+      Preset = "all_stocks"
+    };
+
+    var response = await PostAsync(request, ct);
+    var stockData = StockDataPointTransformer.Tranform(response.Data);
+    await _cache.SetStringAsync(CacheKeys.TRADING_VIEW_SCREENER, JsonSerializer.Serialize(stockData), new DistributedCacheEntryOptions
+    {
+      AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(24)
+    }, ct);
+
+    return stockData;
+  }
+
+  private async Task<TradingViewResponse> PostAsync(TradingViewRequest request, CancellationToken ct)
+  {
+    var response = await _httpClient.PostAsJsonAsync($"{BaseUrl}?label-product=markets-screener", request, ct);
+
+    response.EnsureSuccessStatusCode();
+
+    var responseBody = await response.Content.ReadFromJsonAsync<TradingViewResponse>(ct);
+    return responseBody ?? new TradingViewResponse { TotalCount = 0, Data = [] };
+  }
+}
+
+static class Screener
+{
+  public static readonly string[] Columns =
+  [
+      "name", "description", "close", "change", "volume",
+        "relative_volume_10d_calc", "market_cap_basic",
+        "fundamental_currency_code", "price_earnings_ttm",
+        "earnings_per_share_diluted_ttm",
+        "earnings_per_share_diluted_yoy_growth_ttm",
+        "dividends_yield_current", "sector.tr", "market", "sector",
+
+      "gross_margin_ttm", "operating_margin_ttm",
+        "pre_tax_margin_ttm", "net_margin_ttm", "free_cash_flow_margin_ttm",
+        "return_on_assets_fq", "return_on_equity_fq",
+        "return_on_invested_capital_fq", "research_and_dev_ratio_ttm"
+  ];
+}
+
+static class StockDataPointTransformer
 {
   private static readonly Dictionary<string, Action<CompanyData, JsonNode?>> PropertyMap = new Dictionary<string, Action<CompanyData, JsonNode?>>
   {
@@ -46,38 +152,25 @@ public class RankingCalculator
     { "research_and_dev_ratio_ttm", (data, value) => data.ResearchAndDevRatioTtm = GetDecimalValue(value) },
   };
 
-  public Dictionary<string, RankedCompany> CalculateRankings(
-      TradingViewResponse peData,
-      TradingViewResponse roicData)
+  public static CompanyData[] Tranform(StockDataPoint[] stockData)
   {
-    var peRank = ExtractRank(peData, ColumnDefinitions.PeColumns);
-    var roicRank = ExtractRank(roicData, ColumnDefinitions.RoicColumns);
-
-    return CombineRankings(peRank, roicRank);
-  }
-
-  private static Dictionary<string, CompanyRank> ExtractRank(TradingViewResponse response, string[] columns)
-  {
-    var ranking = new Dictionary<string, CompanyRank>();
-
-    if (response?.Data is null)
-      return ranking;
-
-    for (int i = 0; i < response.Data.Length; i++)
+    var actualData = new CompanyData[stockData.Length];
+    for (int i = 0; i < stockData.Length; i++)
     {
-      var dataPoint = response.Data[i];
+      var dataPoint = stockData[i];
       var recordData = dataPoint.Data;
 
       var companyData = new CompanyData
       {
         Name = string.Empty,
+        Identifier = dataPoint.StockIdentifier,
         StockExchange = dataPoint.StockIdentifier.Split(':')[0]
       };
 
       // Map columns to properties using the dictionary
-      for (int j = 0; j < columns.Length && j < recordData.Count; j++)
+      for (int j = 0; j < Screener.Columns.Length && j < recordData.Count; j++)
       {
-        var columnName = columns[j];
+        var columnName = Screener.Columns[j];
         var value = recordData[j];
 
         if (PropertyMap.TryGetValue(columnName, out var setter))
@@ -85,87 +178,10 @@ public class RankingCalculator
           setter(companyData, value);
         }
       }
-
-      if (!string.IsNullOrEmpty(companyData.Name))
-      {
-        ranking[companyData.Name] = new CompanyRank(i, companyData);
-      }
+      actualData[i] = companyData;
     }
 
-    return ranking;
-  }
-
-  private static Dictionary<string, RankedCompany> CombineRankings(
-      Dictionary<string, CompanyRank> peRank,
-      Dictionary<string, CompanyRank> roicRank)
-  {
-    var finalRank = new Dictionary<string, RankedCompany>();
-
-    foreach (var companyName in peRank.Keys)
-    {
-      if (!roicRank.ContainsKey(companyName))
-        continue;
-
-      var peCompany = peRank[companyName];
-      var roicCompany = roicRank[companyName];
-
-      var combinedRank = peCompany.Rank + roicCompany.Rank;
-
-      // Create merged company data from PE data as base
-      var companyData = new CompanyData
-      {
-        // Basic info
-        Name = peCompany.CompanyData.Name,
-        Description = peCompany.CompanyData.Description,
-        StockExchange = peCompany.CompanyData.StockExchange,
-
-        // Market data (from PE)
-        Close = peCompany.CompanyData.Close,
-        Change = peCompany.CompanyData.Change,
-        Volume = peCompany.CompanyData.Volume,
-        RelativeVolume10dCalc = peCompany.CompanyData.RelativeVolume10dCalc,
-        MarketCapBasic = peCompany.CompanyData.MarketCapBasic,
-        FundamentalCurrencyCode = peCompany.CompanyData.FundamentalCurrencyCode,
-
-        // PE metrics
-        PriceEarningsTtm = peCompany.CompanyData.PriceEarningsTtm,
-        EarningsPerShareDilutedTtm = peCompany.CompanyData.EarningsPerShareDilutedTtm,
-        EarningsPerShareDilutedYoyGrowthTtm = peCompany.CompanyData.EarningsPerShareDilutedYoyGrowthTtm,
-        DividendsYieldCurrent = peCompany.CompanyData.DividendsYieldCurrent,
-
-        // Sector/Market info
-        SectorTr = peCompany.CompanyData.SectorTr,
-        Market = peCompany.CompanyData.Market,
-        Sector = peCompany.CompanyData.Sector,
-
-        // Profitability metrics 
-        GrossMarginTtm = roicCompany.CompanyData.GrossMarginTtm,
-        OperatingMarginTtm = roicCompany.CompanyData.OperatingMarginTtm,
-        PreTaxMarginTtm = roicCompany.CompanyData.PreTaxMarginTtm,
-        NetMarginTtm = roicCompany.CompanyData.NetMarginTtm,
-        FreeCashFlowMarginTtm = roicCompany.CompanyData.FreeCashFlowMarginTtm,
-        ReturnOnAssetsFq = roicCompany.CompanyData.ReturnOnAssetsFq,
-        ReturnOnEquityFq = roicCompany.CompanyData.ReturnOnEquityFq,
-        ReturnOnInvestedCapitalFq = roicCompany.CompanyData.ReturnOnInvestedCapitalFq,
-        ResearchAndDevRatioTtm = roicCompany.CompanyData.ResearchAndDevRatioTtm,
-
-        // Rankings
-        CombinedRank = combinedRank,
-        PeRank = peCompany.Rank,
-        RoicRank = roicCompany.Rank
-      };
-
-      finalRank[companyName] = new RankedCompany
-      {
-        Name = companyName,
-        Data = companyData,
-        CombinedRank = combinedRank,
-        PeRank = peCompany.Rank,
-        RoicRank = roicCompany.Rank
-      };
-    }
-
-    return finalRank;
+    return actualData;
   }
 
   private static string? GetStringValue(JsonNode? node)

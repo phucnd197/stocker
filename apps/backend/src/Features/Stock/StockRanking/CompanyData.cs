@@ -6,6 +6,7 @@ public class CompanyData
 {
   // Basic info
   public required string Name { get; set; }
+  public required string Identifier { get; set; }
   public string? Description { get; set; }
   public string? StockExchange { get; set; }
 
