@@ -1,4 +1,4 @@
-import { useAuth0 } from "@auth0/auth0-react";
+import { useAuth0 } from '@auth0/auth0-react';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -16,20 +16,20 @@ export function useApiFetcher() {
   return async function fetcher<T>(
     path: string,
     options: RequestInit = {},
-    defaultContentType: boolean = true,
+    defaultContentType: boolean = true
   ): Promise<T> {
     const token = await getAccessTokenSilently();
 
-    const headers: Record<string, any> = {
+    const headers: Record<string, unknown> = {
       ...options.headers,
     };
 
     if (
       defaultContentType &&
-      options.method !== "GET" &&
-      headers["Content-Type"] == null
+      options.method !== 'GET' &&
+      headers['Content-Type'] == null
     ) {
-      headers["Content-Type"] = "application/json";
+      headers['Content-Type'] = 'application/json';
     }
 
     const response = await fetch(`${API_BASE_URL}${path}`, {
@@ -41,7 +41,7 @@ export function useApiFetcher() {
     });
 
     if (response.status === 401) {
-      throw new Error("Session expired. Please log in again.");
+      throw new Error('Session expired. Please log in again.');
     }
 
     if (!response.ok) {

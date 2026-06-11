@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import {
   Table,
   TableBody,
@@ -14,14 +14,14 @@ import {
   CircularProgress,
   Alert,
   Tooltip,
-} from "@mui/material";
-import type { Stock } from "../types/stockRanking";
+} from '@mui/material';
+import type { Stock } from '../types/stockRanking';
 
-type SortKey = keyof Stock | "combinedRank";
+type SortKey = keyof Stock | 'combinedRank';
 
 interface SortConfig {
   key: SortKey;
-  direction: "asc" | "desc";
+  direction: 'asc' | 'desc';
 }
 
 interface RankedStocksTableProps {
@@ -33,19 +33,19 @@ interface RankedStocksTableProps {
 
 // Format number as currency
 const formatCurrency = (value: number | null | undefined): string => {
-  if (value == null) return "N/A";
+  if (value == null) return 'N/A';
   return `$${value.toLocaleString()}`;
 };
 
 // Format percentage
 const formatPercentage = (value: number | null | undefined): string => {
-  if (value == null) return "N/A";
+  if (value == null) return 'N/A';
   return `${value.toFixed(2)}%`;
 };
 
 // Format number with commas
 const formatNumber = (value: number | null | undefined): string => {
-  if (value == null) return "N/A";
+  if (value == null) return 'N/A';
   return value.toLocaleString();
 };
 
@@ -53,18 +53,18 @@ const formatNumber = (value: number | null | undefined): string => {
 const RankBadge = ({ rank }: { rank: number | null | undefined }) => {
   if (rank == null) return <Typography color="text.secondary">N/A</Typography>;
 
-  let color: "success" | "info" | "default" = "default";
+  let color: 'success' | 'info' | 'default' = 'default';
   let label = `#${rank}`;
 
   if (rank === 1) {
-    color = "success";
-    label = "🥇 1";
+    color = 'success';
+    label = '🥇 1';
   } else if (rank === 2) {
-    color = "info";
-    label = "🥈 2";
+    color = 'info';
+    label = '🥈 2';
   } else if (rank === 3) {
-    color = "info";
-    label = "🥉 3";
+    color = 'info';
+    label = '🥉 3';
   }
 
   return <Chip label={label} color={color} size="small" />;
@@ -77,14 +77,14 @@ export function RankedStocksTable({
   isLoading = false,
 }: RankedStocksTableProps) {
   const [sortConfig, setSortConfig] = React.useState<SortConfig>({
-    key: "combinedRank",
-    direction: "asc",
+    key: 'combinedRank',
+    direction: 'asc',
   });
 
   const handleSort = (key: SortKey) => {
-    setSortConfig((prev) => ({
+    setSortConfig(prev => ({
       key,
-      direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
+      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc',
     }));
   };
 
@@ -99,8 +99,8 @@ export function RankedStocksTable({
       if (aValue == null) return 1;
       if (bValue == null) return -1;
 
-      if (typeof aValue === "number" && typeof bValue === "number") {
-        return sortConfig.direction === "asc"
+      if (typeof aValue === 'number' && typeof bValue === 'number') {
+        return sortConfig.direction === 'asc'
           ? aValue - bValue
           : bValue - aValue;
       }
@@ -112,7 +112,7 @@ export function RankedStocksTable({
   // Loading skeleton
   if (isLoading) {
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
         <CircularProgress />
       </Box>
     );
@@ -145,15 +145,15 @@ export function RankedStocksTable({
             <TableRow>
               <TableCell
                 sortDirection={
-                  sortConfig.key === "combinedRank"
+                  sortConfig.key === 'combinedRank'
                     ? sortConfig.direction
                     : false
                 }
               >
                 <TableSortLabel
-                  active={sortConfig.key === "combinedRank"}
+                  active={sortConfig.key === 'combinedRank'}
                   direction={sortConfig.direction}
-                  onClick={() => handleSort("combinedRank")}
+                  onClick={() => handleSort('combinedRank')}
                 >
                   <strong>Rank</strong>
                 </TableSortLabel>
@@ -163,132 +163,132 @@ export function RankedStocksTable({
               </TableCell>
               <TableCell
                 sortDirection={
-                  sortConfig.key === "peRank" ? sortConfig.direction : false
+                  sortConfig.key === 'peRank' ? sortConfig.direction : false
                 }
               >
                 <TableSortLabel
-                  active={sortConfig.key === "peRank"}
+                  active={sortConfig.key === 'peRank'}
                   direction={sortConfig.direction}
-                  onClick={() => handleSort("peRank")}
+                  onClick={() => handleSort('peRank')}
                 >
                   <strong>PE Rank</strong>
                 </TableSortLabel>
               </TableCell>
               <TableCell
                 sortDirection={
-                  sortConfig.key === "roicRank" ? sortConfig.direction : false
+                  sortConfig.key === 'roicRank' ? sortConfig.direction : false
                 }
               >
                 <TableSortLabel
-                  active={sortConfig.key === "roicRank"}
+                  active={sortConfig.key === 'roicRank'}
                   direction={sortConfig.direction}
-                  onClick={() => handleSort("roicRank")}
+                  onClick={() => handleSort('roicRank')}
                 >
                   <strong>ROIC Rank</strong>
                 </TableSortLabel>
               </TableCell>
               <TableCell
                 sortDirection={
-                  sortConfig.key === "marketCap" ? sortConfig.direction : false
+                  sortConfig.key === 'marketCap' ? sortConfig.direction : false
                 }
               >
                 <TableSortLabel
-                  active={sortConfig.key === "marketCap"}
+                  active={sortConfig.key === 'marketCap'}
                   direction={sortConfig.direction}
-                  onClick={() => handleSort("marketCap")}
+                  onClick={() => handleSort('marketCap')}
                 >
                   <strong>Market Cap</strong>
                 </TableSortLabel>
               </TableCell>
               <TableCell
                 sortDirection={
-                  sortConfig.key === "price" ? sortConfig.direction : false
+                  sortConfig.key === 'price' ? sortConfig.direction : false
                 }
               >
                 <TableSortLabel
-                  active={sortConfig.key === "price"}
+                  active={sortConfig.key === 'price'}
                   direction={sortConfig.direction}
-                  onClick={() => handleSort("price")}
+                  onClick={() => handleSort('price')}
                 >
                   <strong>Price</strong>
                 </TableSortLabel>
               </TableCell>
               <TableCell
                 sortDirection={
-                  sortConfig.key === "change" ? sortConfig.direction : false
+                  sortConfig.key === 'change' ? sortConfig.direction : false
                 }
               >
                 <TableSortLabel
-                  active={sortConfig.key === "change"}
+                  active={sortConfig.key === 'change'}
                   direction={sortConfig.direction}
-                  onClick={() => handleSort("change")}
+                  onClick={() => handleSort('change')}
                 >
                   <strong>Change</strong>
                 </TableSortLabel>
               </TableCell>
               <TableCell
                 sortDirection={
-                  sortConfig.key === "volume" ? sortConfig.direction : false
+                  sortConfig.key === 'volume' ? sortConfig.direction : false
                 }
               >
                 <TableSortLabel
-                  active={sortConfig.key === "volume"}
+                  active={sortConfig.key === 'volume'}
                   direction={sortConfig.direction}
-                  onClick={() => handleSort("volume")}
+                  onClick={() => handleSort('volume')}
                 >
                   <strong>Volume</strong>
                 </TableSortLabel>
               </TableCell>
               <TableCell
                 sortDirection={
-                  sortConfig.key === "peRatio" ? sortConfig.direction : false
+                  sortConfig.key === 'peRatio' ? sortConfig.direction : false
                 }
               >
                 <TableSortLabel
-                  active={sortConfig.key === "peRatio"}
+                  active={sortConfig.key === 'peRatio'}
                   direction={sortConfig.direction}
-                  onClick={() => handleSort("peRatio")}
+                  onClick={() => handleSort('peRatio')}
                 >
                   <strong>PE Ratio</strong>
                 </TableSortLabel>
               </TableCell>
               <TableCell
                 sortDirection={
-                  sortConfig.key === "eps" ? sortConfig.direction : false
+                  sortConfig.key === 'eps' ? sortConfig.direction : false
                 }
               >
                 <TableSortLabel
-                  active={sortConfig.key === "eps"}
+                  active={sortConfig.key === 'eps'}
                   direction={sortConfig.direction}
-                  onClick={() => handleSort("eps")}
+                  onClick={() => handleSort('eps')}
                 >
                   <strong>EPS</strong>
                 </TableSortLabel>
               </TableCell>
               <TableCell
                 sortDirection={
-                  sortConfig.key === "roic" ? sortConfig.direction : false
+                  sortConfig.key === 'roic' ? sortConfig.direction : false
                 }
               >
                 <TableSortLabel
-                  active={sortConfig.key === "roic"}
+                  active={sortConfig.key === 'roic'}
                   direction={sortConfig.direction}
-                  onClick={() => handleSort("roic")}
+                  onClick={() => handleSort('roic')}
                 >
                   <strong>ROIC</strong>
                 </TableSortLabel>
               </TableCell>
               <TableCell
                 sortDirection={
-                  sortConfig.key === "dividendsYield"
+                  sortConfig.key === 'dividendsYield'
                     ? sortConfig.direction
                     : false
                 }
               >
                 <TableSortLabel
-                  active={sortConfig.key === "dividendsYield"}
+                  active={sortConfig.key === 'dividendsYield'}
                   direction={sortConfig.direction}
-                  onClick={() => handleSort("dividendsYield")}
+                  onClick={() => handleSort('dividendsYield')}
                 >
                   <strong>Div Yield</strong>
                 </TableSortLabel>
@@ -305,7 +305,7 @@ export function RankedStocksTable({
             {sortedStocks.map((stock, index) => (
               <TableRow
                 key={stock.name ?? index}
-                sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
               >
                 <TableCell component="th" scope="row">
                   <RankBadge rank={stock.combinedRank} />
@@ -315,7 +315,7 @@ export function RankedStocksTable({
                     title={
                       stock.description
                         ? `${stock.description}`
-                        : "No description available"
+                        : 'No description available'
                     }
                   >
                     <Typography
@@ -323,44 +323,44 @@ export function RankedStocksTable({
                       sx={{
                         fontWeight: 500,
                         maxWidth: 200,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
                       }}
                     >
-                      {stock.name ?? "Unknown"}
+                      {stock.name ?? 'Unknown'}
                     </Typography>
                   </Tooltip>
                 </TableCell>
-                <TableCell align="right">{stock.peRank ?? "N/A"}</TableCell>
-                <TableCell align="right">{stock.roicRank ?? "N/A"}</TableCell>
+                <TableCell align="right">{stock.peRank ?? 'N/A'}</TableCell>
+                <TableCell align="right">{stock.roicRank ?? 'N/A'}</TableCell>
                 <TableCell align="right">
                   {formatCurrency(stock.marketCap)}
                 </TableCell>
                 <TableCell align="right">
-                  {stock.price != null ? `$${stock.price.toFixed(2)}` : "N/A"}
+                  {stock.price != null ? `$${stock.price.toFixed(2)}` : 'N/A'}
                 </TableCell>
                 <TableCell align="right">
                   {stock.change != null ? (
                     <Typography
-                      color={stock.change >= 0 ? "success.main" : "error.main"}
+                      color={stock.change >= 0 ? 'success.main' : 'error.main'}
                       sx={{ fontWeight: 500 }}
                     >
-                      {stock.change >= 0 ? "+" : ""}
+                      {stock.change >= 0 ? '+' : ''}
                       {stock.change.toFixed(2)}
                     </Typography>
                   ) : (
-                    "N/A"
+                    'N/A'
                   )}
                 </TableCell>
                 <TableCell align="right">
                   {formatNumber(stock.volume)}
                 </TableCell>
                 <TableCell align="right">
-                  {stock.peRatio != null ? stock.peRatio.toFixed(2) : "N/A"}
+                  {stock.peRatio != null ? stock.peRatio.toFixed(2) : 'N/A'}
                 </TableCell>
                 <TableCell align="right">
-                  {stock.eps != null ? `$${stock.eps.toFixed(2)}` : "N/A"}
+                  {stock.eps != null ? `$${stock.eps.toFixed(2)}` : 'N/A'}
                 </TableCell>
                 <TableCell align="right">
                   {formatPercentage(stock.roic)}
@@ -373,12 +373,12 @@ export function RankedStocksTable({
                     variant="body2"
                     sx={{
                       maxWidth: 150,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
                     }}
                   >
-                    {stock.sector ?? "N/A"}
+                    {stock.sector ?? 'N/A'}
                   </Typography>
                 </TableCell>
                 <TableCell>
@@ -386,12 +386,12 @@ export function RankedStocksTable({
                     variant="body2"
                     sx={{
                       maxWidth: 100,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
                     }}
                   >
-                    {stock.stockExchange ?? stock.market ?? "N/A"}
+                    {stock.stockExchange ?? stock.market ?? 'N/A'}
                   </Typography>
                 </TableCell>
               </TableRow>

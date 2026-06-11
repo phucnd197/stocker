@@ -1,9 +1,9 @@
-import { useQuery } from "@tanstack/react-query";
-import { useApiFetcher } from "../../auth/hooks/useApiFetcher";
-import { createStockRankingApi } from "../services/stockRankingApi";
-import type { RankingRequest } from "../types/stockRanking";
+import { useQuery } from '@tanstack/react-query';
+import { useApiFetcher } from '../../auth/hooks/useApiFetcher';
+import { createStockRankingApi } from '../services/stockRankingApi';
+import type { RankingRequest } from '../types/stockRanking';
 
-export const STOCK_RANKING_QUERY_KEY = ["stockRanking"] as const;
+export const STOCK_RANKING_QUERY_KEY = ['stockRanking'] as const;
 
 export function useStockRanking(params: RankingRequest | null) {
   const fetcher = useApiFetcher();

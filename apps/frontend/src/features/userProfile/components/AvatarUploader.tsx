@@ -1,6 +1,6 @@
-import { useRef } from "react";
-import { Avatar, Box, Typography } from "@mui/material";
-import { AVATAR_ACCEPTED_MIME, AVATAR_MAX_SIZE } from "../types/userProfile";
+import { useRef } from 'react';
+import { Avatar, Box, Typography } from '@mui/material';
+import { AVATAR_ACCEPTED_MIME, AVATAR_MAX_SIZE } from '../types/userProfile';
 
 interface AvatarUploaderProps {
   previewUrl: string | null;
@@ -8,7 +8,13 @@ interface AvatarUploaderProps {
   onError: (message: string) => void;
 }
 
-const validTypes = ["image/jpeg", "image/png", "image/gif", "image/svg+xml", "image/webp"];
+const validTypes = [
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  'image/svg+xml',
+  'image/webp',
+];
 export function AvatarUploader({
   previewUrl,
   onFileSelected,
@@ -21,14 +27,14 @@ export function AvatarUploader({
     if (!file) return;
 
     if (file.size > AVATAR_MAX_SIZE) {
-      onError("File must be 5 MB or smaller.");
-      e.target.value = "";
+      onError('File must be 5 MB or smaller.');
+      e.target.value = '';
       return;
     }
 
     if (!validTypes.includes(file.type)) {
-      onError("Only JPG, PNG, GIF, SVG, and WebP files are allowed.");
-      e.target.value = "";
+      onError('Only JPG, PNG, GIF, SVG, and WebP files are allowed.');
+      e.target.value = '';
       return;
     }
 
@@ -38,15 +44,15 @@ export function AvatarUploader({
   return (
     <Box
       sx={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
         gap: 1,
       }}
     >
       <Avatar
         src={previewUrl ?? undefined}
-        sx={{ width: 96, height: 96, cursor: "pointer", fontSize: 40 }}
+        sx={{ width: 96, height: 96, cursor: 'pointer', fontSize: 40 }}
         onClick={() => inputRef.current?.click()}
         aria-label="Upload profile picture"
       />
@@ -57,7 +63,7 @@ export function AvatarUploader({
         ref={inputRef}
         type="file"
         accept={AVATAR_ACCEPTED_MIME}
-        style={{ display: "none" }}
+        style={{ display: 'none' }}
         onChange={handleFileChange}
       />
     </Box>

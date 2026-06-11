@@ -1,9 +1,9 @@
-import { useQuery } from "@tanstack/react-query";
-import { useAuth0 } from "@auth0/auth0-react";
-import { useApiFetcher } from "../../auth/hooks/useApiFetcher";
-import { createUserProfileApi } from "../services/userProfileApi";
+import { useQuery } from '@tanstack/react-query';
+import { useAuth0 } from '@auth0/auth0-react';
+import { useApiFetcher } from '../../auth/hooks/useApiFetcher';
+import { createUserProfileApi } from '../services/userProfileApi';
 
-export const USER_PROFILE_QUERY_KEY = ["userProfile"] as const;
+export const USER_PROFILE_QUERY_KEY = ['userProfile'] as const;
 
 export function useUserProfile() {
   const { isAuthenticated } = useAuth0();
