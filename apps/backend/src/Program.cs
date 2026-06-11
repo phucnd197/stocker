@@ -2,7 +2,9 @@ using System.Threading.RateLimiting;
 using Auth0.AspNetCore.Authentication.Api;
 using FastEndpoints;
 using FastEndpoints.Swagger;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Stocker.Core.Settings;
 using Stocker.Features;
 using Stocker.Infrastructure;
@@ -18,12 +20,34 @@ builder.Services.AddFeatureDependencies();
 builder.Services.AddCors();
 builder.Services.AddInfrastructure(builder.Configuration);
 
-builder.Services.AddAuth0ApiAuthentication(options =>
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
 {
     var config = builder.Configuration.GetSection("Auth0").Get<AuthenticationSettings>() ??
                  throw new ArgumentNullException("Missing configuration for authentication");
-    options.Domain = config.Domain;
+    options.Authority = config.Domain;
     options.Audience = config.Audience;
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        // Ensure the token issuer matches your exact Auth0 Tenant Domain
+        ValidateIssuer = true,
+        ValidIssuer = config.Domain,
+
+        // Ensure the token was intended for your specific API
+        ValidateAudience = true,
+        ValidAudience = config.Audience,
+
+        // Validate that the token has not expired yet
+        ValidateLifetime = true,
+
+        // Auth0 signs tokens cryptographically using RS256 via a public JWKS endpoint.
+        // The middleware fetches these keys automatically from your Authority domain.
+        ValidateIssuerSigningKey = true
+    };
 });
 
 builder.Services.AddAuthorization();
