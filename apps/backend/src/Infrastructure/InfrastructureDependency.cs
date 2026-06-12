@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using Minio;
 using Stocker.Core.Clients;
 using Stocker.Core.Settings;
-using Stocker.Infrastructure.Clients;
 using Stocker.Infrastructure.Database;
 using Stocker.Infrastructure.Database.Interceptors;
 using TickerQ.Dashboard.DependencyInjection;
@@ -16,12 +15,6 @@ public static class InfrastructureDependency
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        // Register feature services
-        services.AddHttpClient<ITradingViewClient, TradingViewClient>(configureClient: client =>
-        {
-            client.BaseAddress = new Uri("https://scanner.tradingview.com/america/scan");
-        }).AddStandardResilienceHandler();
-
         services.AddDbContext<StockerDataContext>(options =>
         {
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"))

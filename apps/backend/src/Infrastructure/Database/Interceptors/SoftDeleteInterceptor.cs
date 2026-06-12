@@ -6,14 +6,33 @@ namespace Stocker.Infrastructure.Database.Interceptors;
 
 public class SoftDeleteInterceptors : SaveChangesInterceptor
 {
-  public override ValueTask<int> SavedChangesAsync(SaveChangesCompletedEventData eventData, int result, CancellationToken cancellationToken = default)
+  public override ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
   {
     if (eventData.Context is null)
     {
-      return base.SavedChangesAsync(eventData, result, cancellationToken);
+      return base.SavingChangesAsync(eventData, result, cancellationToken);
     }
 
-    var entries = eventData.Context.ChangeTracker.Entries<ISoftDeletable>().Where(x => x.State == EntityState.Modified);
+    SoftDeleteEntries(eventData);
+
+    return base.SavingChangesAsync(eventData, result, cancellationToken);
+  }
+
+  public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
+  {
+    if (eventData.Context is null)
+    {
+      return base.SavingChanges(eventData, result);
+    }
+
+    SoftDeleteEntries(eventData);
+
+    return base.SavingChanges(eventData, result);
+  }
+
+  private static void SoftDeleteEntries(DbContextEventData eventData)
+  {
+    var entries = eventData.Context.ChangeTracker.Entries<ISoftDeletable>().Where(x => x.State == EntityState.Deleted);
 
     foreach (var softDeletable in entries)
     {
@@ -21,7 +40,5 @@ public class SoftDeleteInterceptors : SaveChangesInterceptor
       softDeletable.Entity.IsDeleted = true;
       softDeletable.Entity.DeletedAt = DateTime.UtcNow;
     }
-
-    return base.SavedChangesAsync(eventData, result, cancellationToken);
   }
 }

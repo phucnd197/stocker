@@ -7,6 +7,7 @@ using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using Stocker.Core;
 using Stocker.Core.Settings;
 using Stocker.Features;
 using Stocker.Infrastructure;
@@ -21,6 +22,7 @@ builder.Services.SwaggerDocument();
 builder.Services.AddFeatureDependencies();
 builder.Services.AddCors();
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddCore();
 
 builder.Services.AddAuthentication(options =>
 {

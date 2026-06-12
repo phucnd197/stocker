@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using Stocker.Core.Domain;
+using Stocker.Features.Stock;
 using Stocker.Features.UserProfile;
 
 namespace Stocker.Infrastructure.Database;
@@ -8,6 +9,9 @@ namespace Stocker.Infrastructure.Database;
 public class StockerDataContext : DbContext
 {
   public DbSet<UserProfile> UserProfiles { get; set; }
+  public DbSet<Portfolio> Portfolios { get; set; }
+  public DbSet<PortfolioStock> PortfolioStocks { get; set; }
+
   public StockerDataContext(DbContextOptions<StockerDataContext> options)
       : base(options)
   {
