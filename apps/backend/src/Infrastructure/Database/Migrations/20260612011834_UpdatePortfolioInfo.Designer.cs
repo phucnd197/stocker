@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Stocker.Infrastructure.Database;
 
@@ -11,9 +12,11 @@ using Stocker.Infrastructure.Database;
 namespace Stocker.Infrastructure.Database.Migrations
 {
     [DbContext(typeof(StockerDataContext))]
-    partial class StockerDataContextModelSnapshot : ModelSnapshot
+    [Migration("20260612011834_UpdatePortfolioInfo")]
+    partial class UpdatePortfolioInfo
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -28,7 +31,7 @@ namespace Stocker.Infrastructure.Database.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime?>("DeletedAt")
+                    b.Property<DateTime>("DeletedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
@@ -73,8 +76,10 @@ namespace Stocker.Infrastructure.Database.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PortfolioId", "Company")
+                    b.HasIndex("Company")
                         .IsUnique();
+
+                    b.HasIndex("PortfolioId");
 
                     b.ToTable("PortfolioStocks");
                 });
@@ -94,7 +99,7 @@ namespace Stocker.Infrastructure.Database.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("DeletedAt")
+                    b.Property<DateTime>("DeletedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Image")

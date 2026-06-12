@@ -6,7 +6,7 @@ using Stocker.Core.Clients;
 using Stocker.Features.Stock.StockRanking;
 using Stocker.Infrastructure.Models;
 
-namespace Stocker.Infrastructure.Clients;
+namespace Stocker.Core.Clients;
 
 record TradingViewRequest
 {
@@ -37,6 +37,10 @@ record StockDataPoint
   public required string StockIdentifier { get; init; }
 }
 
+public interface ITradingViewClient
+{
+  Task<CompanyData[]> FetchAllStockDataAsync(bool refresh, CancellationToken ct);
+}
 
 public class TradingViewClient : ITradingViewClient
 {

@@ -12,5 +12,5 @@ public class UserProfile : ISoftDeletable
     public string Address { get; set; }
 
     public bool IsDeleted { get; set; }
-    public DateTime DeletedAt { get; set; }
+    public DateTime? DeletedAt { get; set; }
 }
